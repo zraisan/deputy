@@ -2,6 +2,8 @@
 
 **We taught a website to describe itself to an agent — without its cooperation.**
 
+**[zraisan.github.io/deputy](https://zraisan.github.io/deputy/)** · [demo video](docs/deputy-demo.mp4) · [measurements](docs/measurements.md) · [architecture](ARCHITECTURE.md)
+
 ![Deputy synthesizing a typed tool from a page with no form element, then filling it](docs/deputy-still.png)
 
 *An ordinary product form with no `<form>` element: its controls are divs with ARIA roles. Deputy
@@ -50,13 +52,11 @@ CopilotKit v2 ships a `WebMCPRegistry` that publishes an app's frontend tools to
 `document.modelContext` — the same WebMCP registry Deputy grafts onto everything else. So the
 integration needs no glue at all:
 
-```
-CopilotKit v2 app                       Deputy
-  useFrontendTool(...)                    grafts <form>s and ARIA widgets
-        │                                        │
-        └──▶  document.modelContext  ◀───────────┘
-                      │
-                      └──▶ browser_capabilities → any MCP agent
+```mermaid
+flowchart LR
+  ck["CopilotKit v2 app<br/>useFrontendTool(...)"] --> mc["document.modelContext"]
+  dp["Deputy<br/>grafts forms and ARIA widgets"] --> mc
+  mc --> bc["browser_capabilities"] --> agent["any MCP agent"]
 ```
 
 **Both directions work, and both are real:**
@@ -201,12 +201,23 @@ bun scripts/sweep.ts  # point Deputy at 8 real sites and see what it makes of ea
 
 ## How it's built
 
-```
-Claude Code ──MCP──▶ deputyd (Bun) ──WebSocket──▶ extension (MV3) ──▶ Chromium's own WebMCP
-                       │                             │
-                       ├─ registry: tabs → tools     ├─ graft: annotate real <form>s
-                       ├─ tasks: A2A-shaped states   ├─ synthesize: everything else
-                       └─ planner: qwen (optional)   └─ content: getTools / executeTool
+```mermaid
+flowchart LR
+  client["Any MCP client<br/>Claude Code · Cursor · …"] -- MCP --> deputyd
+  subgraph deputyd ["deputyd (Bun)"]
+    direction TB
+    registry["registry: tabs → tools"]
+    tasks["tasks: A2A-shaped states"]
+    planner["planner: qwen (optional)"]
+  end
+  deputyd -- WebSocket --> extension
+  subgraph extension ["extension (MV3)"]
+    direction TB
+    graft["graft: annotate real forms"]
+    synth["synthesize: everything else"]
+    content["content: getTools / executeTool"]
+  end
+  extension --> webmcp["Chromium's own WebMCP"]
 ```
 
 The daemon exists because an MV3 service worker dies after 30 s idle and cannot listen on a port.
