@@ -155,8 +155,42 @@ second key being up.
 bun install
 cp .env.example .env       # add OPENROUTER_API_KEY (optional — it degrades without one)
 bun run dev                # daemon + a Chromium carrying the extension
+```
+
+Then point any MCP client at `http://127.0.0.1:7331/mcp` — one streamable-HTTP endpoint, loopback
+only, no auth. Deputy is not Claude-specific; it is the same six tools whatever is calling.
+
+**Claude Code**
+
+```bash
 claude mcp add --transport http deputy http://127.0.0.1:7331/mcp
 ```
+
+**Cursor** — `~/.cursor/mcp.json`, or `.cursor/mcp.json` for one project
+
+```json
+{ "mcpServers": { "deputy": { "url": "http://127.0.0.1:7331/mcp" } } }
+```
+
+**VS Code / GitHub Copilot** — `.vscode/mcp.json`
+
+```json
+{ "servers": { "deputy": { "type": "http", "url": "http://127.0.0.1:7331/mcp" } } }
+```
+
+**Windsurf, Cline, Zed, Goose, Continue** — the same `mcpServers` block as Cursor. Windsurf spells
+the key `serverUrl`; Cline and Zed use `url`.
+
+**Claude Desktop, or any host that still speaks only stdio** — bridge it:
+
+```json
+{ "mcpServers": { "deputy": {
+  "command": "npx", "args": ["-y", "mcp-remote", "http://127.0.0.1:7331/mcp"] } } }
+```
+
+**Your own agent** — POST JSON-RPC at the endpoint, or hand the URL to an MCP SDK's
+streamable-HTTP client. [`scripts/sweep.ts`](scripts/sweep.ts) is a working client in about ten
+lines, and doubles as a smoke test.
 
 ```bash
 bun test              # 88 unit tests, never launches a browser
