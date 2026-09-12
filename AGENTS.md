@@ -7,7 +7,7 @@ Deputy is itself an agent tool, so the codebase has opinions about how agents sh
 
 Deputy makes a web page describe itself to an agent. It retrofits the W3C **WebMCP** standard onto
 sites that never implemented it, so that **Chromium** generates the JSON Schema and executes the
-form submission — we write six HTML attributes and get out of the way.
+form submission — we write four HTML attributes and get out of the way.
 
 Read `ARCHITECTURE.md` before changing anything. It documents the invariants and why the module
 boundaries fall where they do.

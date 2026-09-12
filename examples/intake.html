@@ -1,0 +1,149 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Helix — Request a demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style>
+  :root{
+    --ink:#0f1729; --muted:#5b6784; --line:#e3e8f0; --bg:#f7f9fc;
+    --accent:#4f46e5; --accent-soft:#eef2ff; --card:#ffffff;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:
+      radial-gradient(1100px 520px at 50% -180px, #e8edfb 0%, transparent 70%), var(--bg);
+    color:var(--ink);
+    font:16px/1.6 "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:720px; margin:0 auto; padding:56px 28px 100px}
+  .brand{display:flex; align-items:center; gap:11px; margin-bottom:38px}
+  .mark{width:30px; height:30px; border-radius:9px;
+    background:linear-gradient(135deg,#6366f1,#8b5cf6); box-shadow:0 6px 18px rgba(99,102,241,.35)}
+  .brand b{font-size:17px; letter-spacing:-.01em}
+  h1{font-size:34px; line-height:1.2; letter-spacing:-.025em; margin:0 0 10px}
+  .sub{color:var(--muted); font-size:16.5px; margin:0 0 34px; max-width:46ch}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:16px;
+    padding:28px 30px; margin-bottom:18px; box-shadow:0 1px 2px rgba(16,24,40,.04), 0 10px 30px rgba(16,24,40,.05)}
+  .card h2{font-size:12px; letter-spacing:.13em; text-transform:uppercase; color:var(--muted);
+    margin:0 0 20px; font-weight:600}
+  .field{margin-bottom:20px}
+  .field:last-child{margin-bottom:0}
+  .lbl{display:block; font-weight:600; font-size:14.5px; margin-bottom:7px}
+  .hint{color:var(--muted); font-size:13.5px; margin:-3px 0 9px}
+  input[type=text], input[type=email], input[type=date]{
+    width:100%; padding:11px 14px; font:inherit; color:var(--ink);
+    border:1px solid var(--line); border-radius:10px; background:#fff; transition:border-color .15s, box-shadow .15s}
+  input:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 4px var(--accent-soft)}
+  .editor{min-height:92px; padding:11px 14px; border:1px solid var(--line); border-radius:10px;
+    background:#fff; line-height:1.6}
+  .editor:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 4px var(--accent-soft)}
+  .editor:empty:before{content:attr(data-placeholder); color:#9aa5bd}
+  .opts{display:grid; gap:9px}
+  .opts.two{grid-template-columns:1fr 1fr}
+  .opt{display:flex; align-items:center; gap:11px; padding:12px 14px; cursor:pointer;
+    border:1px solid var(--line); border-radius:11px; background:#fff; font-size:14.7px;
+    transition:border-color .15s, background .15s}
+  .opt:hover{border-color:#c7cfe0}
+  .opt .dot{width:17px; height:17px; border-radius:50%; border:1.5px solid #c2cadb; flex:none; position:relative}
+  .opt .box{width:17px; height:17px; border-radius:5px; border:1.5px solid #c2cadb; flex:none; position:relative}
+  .opt[aria-checked="true"]{border-color:var(--accent); background:var(--accent-soft)}
+  .opt[aria-checked="true"] .dot{border-color:var(--accent)}
+  .opt[aria-checked="true"] .dot:after{content:""; position:absolute; inset:3.5px;
+    border-radius:50%; background:var(--accent)}
+  .opt[aria-checked="true"] .box{border-color:var(--accent); background:var(--accent)}
+  .opt[aria-checked="true"] .box:after{content:"✓"; position:absolute; inset:0; color:#fff;
+    font-size:12px; line-height:14px; text-align:center; font-weight:700}
+  .submit{margin-top:6px; padding:13px 26px; font:600 15px/1 inherit; color:#fff; cursor:pointer;
+    background:linear-gradient(180deg,#6366f1,#4f46e5); border:0; border-radius:11px;
+    box-shadow:0 8px 22px rgba(79,70,229,.32)}
+  .foot{color:var(--muted); font-size:13px; margin-top:14px}
+  #done{display:none; margin-top:18px; padding:14px 16px; border-radius:12px;
+    background:#ecfdf5; border:1px solid #a7f3d0; color:#065f46; font-size:14.5px}
+</style>
+
+<div class="wrap">
+  <div class="brand"><span class="mark"></span><b>Helix</b></div>
+  <h1>Request a demo</h1>
+  <p class="sub">Tell us a little about your team and we'll put together a walkthrough that fits.</p>
+
+  <!-- Deliberately no <form> element: the controls below are divs with ARIA roles,
+       the way most modern app frameworks build a form. -->
+  <div class="card">
+    <h2>About you</h2>
+    <div class="field">
+      <label class="lbl" for="name">Full name</label>
+      <input id="name" type="text" placeholder="Ada Lovelace">
+    </div>
+    <div class="field">
+      <label class="lbl" for="email">Work email</label>
+      <input id="email" type="email" placeholder="ada@example.com">
+    </div>
+    <div class="field">
+      <label class="lbl" for="company">Company</label>
+      <input id="company" type="text" placeholder="Analytical Engines Ltd">
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Your team</h2>
+    <div class="field">
+      <span class="lbl" id="size-l">Team size</span>
+      <div class="opts two" role="radiogroup" aria-labelledby="size-l">
+        <div class="opt" role="radio" aria-checked="false" data-value="1-10"><span class="dot"></span>1–10 people</div>
+        <div class="opt" role="radio" aria-checked="false" data-value="11-50"><span class="dot"></span>11–50 people</div>
+        <div class="opt" role="radio" aria-checked="false" data-value="51-200"><span class="dot"></span>51–200 people</div>
+        <div class="opt" role="radio" aria-checked="false" data-value="200+"><span class="dot"></span>200+ people</div>
+      </div>
+    </div>
+    <div class="field">
+      <span class="lbl" id="int-l">What are you evaluating?</span>
+      <p class="hint">Pick as many as apply.</p>
+      <div class="opts two" role="group" aria-labelledby="int-l">
+        <div class="opt" role="checkbox" aria-checked="false" data-value="Analytics"><span class="box"></span>Analytics</div>
+        <div class="opt" role="checkbox" aria-checked="false" data-value="Automation"><span class="box"></span>Automation</div>
+        <div class="opt" role="checkbox" aria-checked="false" data-value="Reporting"><span class="box"></span>Reporting</div>
+        <div class="opt" role="checkbox" aria-checked="false" data-value="API access"><span class="box"></span>API access</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Details</h2>
+    <div class="field">
+      <span class="lbl" id="uc-l">Tell us about your use case</span>
+      <div class="editor" role="textbox" contenteditable="true" aria-labelledby="uc-l"
+           data-placeholder="What are you hoping to solve?"></div>
+    </div>
+    <div class="field">
+      <label class="lbl" for="when">Preferred date</label>
+      <input id="when" type="date">
+    </div>
+  </div>
+
+  <button class="submit" id="go">Request demo</button>
+  <p class="foot">We'll reply within one business day.</p>
+  <div id="done"></div>
+</div>
+
+<script>
+  for (const el of document.querySelectorAll('[role=radio],[role=checkbox]')) {
+    el.onclick = () => {
+      if (el.getAttribute('role') === 'radio')
+        for (const s of el.parentElement.children) s.setAttribute('aria-checked','false');
+      el.setAttribute('aria-checked', el.getAttribute('aria-checked') === 'true' ? 'false' : 'true');
+    };
+  }
+  document.getElementById('go').onclick = () => {
+    const picked = (role) => [...document.querySelectorAll('[role='+role+'][aria-checked=true]')]
+      .map(e => e.dataset.value);
+    const data = {
+      name: name.value, email: email.value, company: company.value,
+      team_size: picked('radio')[0] || null, evaluating: picked('checkbox'),
+      use_case: document.querySelector('.editor').textContent.trim(), date: when.value,
+    };
+    window.__submitted = data;
+    const d = document.getElementById('done');
+    d.style.display = 'block';
+    d.textContent = 'Request received — we will be in touch about ' + (data.evaluating.join(', ') || 'your demo') + '.';
+  };
+</script>

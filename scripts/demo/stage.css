@@ -52,17 +52,17 @@
 }
 #__dcard.out { animation:dFadeIn .45s ease reverse both; }
 /* Swapping content inside a card that is already up: fade the words, keep the backdrop. */
-#__dcard .stack { animation:dFadeIn .3s ease both; }
+#__dcard .stack { animation:dFadeIn .3s ease both; display:flex; flex-direction:column; align-items:center; }
 #__dcard .stack.leaving { animation:dFadeIn .22s ease reverse both; }
 #__dcard .kicker { font:600 12.5px/1 ui-monospace,monospace; letter-spacing:.3em; opacity:.45; margin-bottom:26px; text-indent:.3em; }
-#__dcard .big   { font-weight:700; letter-spacing:-.015em; line-height:1.18; max-width:17ch; text-wrap:balance; }
-#__dcard .lead  { font-size:30px; line-height:1.45; max-width:26ch; font-weight:600; text-wrap:balance; }
-#__dcard .sub   { font-size:17px; line-height:1.62; opacity:.62; max-width:46ch; margin-top:22px; font-weight:400; text-wrap:balance; }
+#__dcard .big   { font-weight:700; letter-spacing:-.015em; line-height:1.18; max-width:17ch; margin-inline:auto; text-wrap:balance; }
+#__dcard .lead  { font-size:30px; line-height:1.45; max-width:26ch; margin-inline:auto; font-weight:600; text-wrap:balance; }
+#__dcard .sub   { font-size:17px; line-height:1.62; opacity:.62; max-width:46ch; margin:22px auto 0; font-weight:400; text-wrap:balance; }
 #__dcard .mono  { font-family:ui-monospace,monospace; color:#4ade80; }
-#__dcard .line  { animation:dRise .62s cubic-bezier(.2,.7,.3,1) both; }
+#__dcard .line  { animation:dRise .62s cubic-bezier(.2,.7,.3,1) both; width:100%; }
 
 /* ── the numbers ────────────────────────────────────────────── */
-#__dcard .bars { margin-top:34px; display:flex; flex-direction:column; gap:13px; }
+#__dcard .bars { margin:34px auto 0; display:flex; flex-direction:column; gap:13px; align-items:center; }
 #__dcard .barrow { display:flex; align-items:center; gap:16px; }
 #__dcard .barlbl { width:190px; text-align:right; font-size:14.5px; opacity:.75; }
 #__dcard .bartrack { width:420px; height:24px; background:rgba(255,255,255,.06); border-radius:6px; overflow:hidden; }
@@ -70,7 +70,7 @@
 #__dcard .barval { width:160px; text-align:left; font:600 14.5px/1 ui-monospace,monospace; }
 
 /* ── the comparison table ───────────────────────────────────── */
-#__dcard table.cmp { margin-top:28px; border-collapse:collapse; font-size:15px; }
+#__dcard table.cmp { margin:28px auto 0; border-collapse:collapse; font-size:15px; }
 #__dcard table.cmp th { font:600 11px/1 ui-monospace,monospace; letter-spacing:.18em; opacity:.4;
   padding:0 20px 14px; text-align:left; }
 #__dcard table.cmp td { padding:10px 20px; border-top:1px solid rgba(255,255,255,.07); text-align:left; }

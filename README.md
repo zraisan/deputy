@@ -2,11 +2,13 @@
 
 **We taught a website to describe itself to an agent — without its cooperation.**
 
-![Deputy synthesizing a typed tool from a page with no form element, then filling it](docs/deputy-demo.gif)
+![Deputy synthesizing a typed tool from a page with no form element, then filling it](docs/deputy-still.png)
 
-*A page built the way Google Forms builds one — no `<form>`, its choices are `<div role="radio">`.
-Deputy synthesizes a typed tool from it, hands the schema to an agent, and fills it from one call.
-Reproduce it with `bun run demo` and `bun run dev`; full video: [`docs/deputy-demo.mp4`](docs/deputy-demo.mp4).*
+*An ordinary product form with no `<form>` element: its controls are divs with ARIA roles. Deputy
+synthesizes a 10-field typed tool from it, hands the schema to an agent, and fills it from one call.
+Reproduce it with `bun run demo` and `bun run dev`. Watch it:
+**[docs/deputy-demo.mp4](docs/deputy-demo.mp4)**.*
+
 
 
 Deputy is an agent that lives in your browser. Any MCP client — Claude Code, Cursor, your own agent —
@@ -26,7 +28,7 @@ away when we render to pixels, and then pay a language model to infer it back fr
 There is a W3C standard that fixes this — **WebMCP**, shipping in Chromium 152 — which lets a site
 declare its forms as agent-callable tools. Almost nobody has adopted it.
 
-So Deputy adopts it on their behalf. It writes six HTML attributes onto the page's own form, and
+So Deputy adopts it on their behalf. It writes four HTML attributes onto the page's own form, and
 then **Chromium itself** generates the JSON Schema and executes the submission:
 
 ```html

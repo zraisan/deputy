@@ -1,35 +1,30 @@
-/**
- * The submission recording.
- *
- * Every tool call below is a real MCP call against the running daemon, on the
- * real hackathon submission page, in a real signed-in session. The motion is
- * staged; the substance is not. Nothing is ever submitted.
- */
 import { rmSync, mkdirSync, writeFileSync } from 'node:fs';
 
 /**
- * Two cuts from one script:
- *   bun scripts/record-demo.ts            → the public demo, on examples/aria-form.html
- *   bun scripts/record-demo.ts submission → the same run on whatever page is open
+ * Records the demo on the example page served by `bun run demo`, so anyone can
+ * reproduce exactly what the recording shows.
  *
- * The public cut uses an example page anyone can serve with `bun run demo`, so a
- * reader can reproduce exactly what the recording shows.
+ * Every tool call below is a real MCP call against the running daemon, on a real
+ * page, in a real browser session. The motion is staged; the substance is not.
+ * Nothing is ever submitted.
  */
-const SUBMISSION = process.argv[2] === 'submission';
-const TARGET = SUBMISSION ? 'aitinkerers' : '8877';
-const SETUP = SUBMISSION
-  ? { lead: `This hackathon's own<br>submission form.`,
-      sub: `25 inputs. Not one of them inside a <span class="mono">&lt;form&gt;</span><br>— so the WebMCP standard has nothing to attach to.` }
-  : { lead: `A page built the way<br>Google Forms builds one.`,
-      sub: `No <span class="mono">&lt;form&gt;</span> element. Its choices are <span class="mono">&lt;div role="radio"&gt;</span><br>— widgets, not form controls.` };
-const BUILT = SUBMISSION
-  ? `booleans for the sponsor checkboxes · <span class="mono">uri</span> for the links · three required`
-  : `an <span class="mono">enum</span> from the radio group · booleans from the checkboxes · text from the contenteditable`;
-const FILL = SUBMISSION
-  ? { project_name: 'Deputy', brief_description: 'filled by Deputy', affiliated_products: true, affiliated_products_3: true, affiliated_products_4: true }
-  : { your_name: 'Ada Lovelace',
-      tell_us_about_your_project: 'Deputy turns any page into a typed tool an agent can call.',
-      primary_language: 'TypeScript', openrouter: true, claude: true };
+const TARGET = '8877';
+const SETUP = {
+  lead: `An ordinary product form.`,
+  sub: `No <span class="mono">&lt;form&gt;</span> element anywhere. Its controls are divs with ARIA roles<br>— the way most app frameworks build one.`,
+};
+const BUILT = `an <span class="mono">enum</span> from the radio group · four booleans from the checkboxes · text from the contenteditable`;
+const FILL = {
+  name: 'Ada Lovelace',
+  email: 'ada@analyticalengines.com',
+  company: 'Analytical Engines Ltd',
+  team_size: '11-50',
+  analytics: true,
+  automation: true,
+  tell_us_about_your_use_case:
+    'We want our agents to use internal tools without screenshotting every page.',
+  when: '2026-10-05',
+};
 
 const CDP = 'http://127.0.0.1:9555';
 const MCP = 'http://127.0.0.1:7331/mcp';
@@ -136,9 +131,32 @@ const scan = (on: boolean) => js(on
   ? `(() => { if(!document.getElementById('__dscan')){const d=document.createElement('div');d.id='__dscan';document.body.appendChild(d);} return 1 })()`
   : `document.getElementById('__dscan')?.remove()`);
 
+/**
+ * Sweep the page top → bottom → top.
+ *
+ * The controls the scan highlights do not all fit on one screen, so without
+ * this the viewer only ever sees the first few and has to take the HUD's word
+ * for the rest. Resolves as soon as the animation is queued; the caller holds
+ * for the duration.
+ */
+const sweep = (ms: number) => js(`(() => {
+  const max = document.documentElement.scrollHeight - window.innerHeight;
+  if (max <= 0) return 0;
+  const t0 = performance.now();
+  const ease = (t) => t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3) / 2;
+  const step = (now) => {
+    const p = Math.min(1, (now - t0) / ${ms});
+    // one triangle: 0 → 1 → 0, eased at both ends of each leg
+    window.scrollTo(0, max * (p < .5 ? ease(p * 2) : ease((1 - p) * 2)));
+    if (p < 1) requestAnimationFrame(step); else window.scrollTo(0, 0);
+  };
+  requestAnimationFrame(step);
+  return 1 })()`);
+
 // clear the form so the fill is visible, and start at the top
 await js(`(() => {
-  for (const e of document.querySelectorAll('input[type=text],input:not([type]),textarea')) {
+  for (const e of document.querySelectorAll(
+    'input:not([type=hidden]):not([type=submit]):not([type=button]),textarea')) {
     e.value=''; e.dispatchEvent(new Event('input',{bubbles:true}));
   }
   for (const e of document.querySelectorAll('[contenteditable]')) e.textContent='';
@@ -183,13 +201,26 @@ await hold(350);
 // 3 ── read
 await scan(true);
 await hud('reading the page', 'light DOM and open shadow roots');
-await hold(2100);
-const loose = await val(`[...document.querySelectorAll('input,select,textarea')]
-  .filter(e => !e.closest('form') && !['hidden','submit','button'].includes(e.type)).length`);
-await js(`(() => { for (const e of document.querySelectorAll('input,textarea,select'))
-  if(!e.closest('form')) e.classList.add('__dfound'); return 1 })()`);
-await hud(`${loose} inputs, none inside a <form>`, 'nothing to graft attributes onto');
-await hold(2600);
+await hold(1300);
+/**
+ * Outline exactly the controls that become schema fields — one highlight per
+ * field. The radio group is outlined as a whole, because the four radios inside
+ * it collapse into a single enum; every other ARIA widget is one field each.
+ * The count in the HUD is derived from what was actually outlined, so the
+ * number the viewer is told can never drift from the boxes on screen.
+ */
+const found = await val(`(() => {
+  const els = [...document.querySelectorAll(
+    'input:not([type=hidden]):not([type=submit]):not([type=button]),select,textarea,' +
+    '[role=radiogroup],[role=checkbox],[contenteditable=true]')]
+    .filter(e => !e.closest('form'));
+  for (const e of els) e.classList.add('__dfound');
+  return els.length })()`);
+await hud(`${found} controls, none inside a <form>`, 'nothing to graft attributes onto');
+await hold(400);
+// the sweep runs on the page's own rAF clock; hold covers it plus a beat to settle
+await sweep(3400);
+await hold(3500);
 await scan(false);
 await js(`(() => { for (const e of document.querySelectorAll('.__dfound')) e.classList.remove('__dfound'); return 1 })()`);
 
@@ -223,7 +254,8 @@ await hold(350);
 
 await hud('sent the schema to the agent', `${Math.round(capsRaw.length / 4)} tokens — no screenshot, no DOM`, 'out');
 await hold(1900);
-await hud('the agent replied with one typed call', `${toolName}({ project_name, brief_description, … })`, 'in');
+const argNames = Object.keys(FILL).slice(0, 3).join(', ');
+await hud('the agent replied with one typed call', `${toolName}({ ${argNames}, … })`, 'in');
 await hold(1800);
 
 // 5 ── the fill
@@ -256,32 +288,32 @@ await hold(6600);
 
 
 // 7 ── how this compares
-const row = (what: string, perPage: string, toFill: string, me = false) => `
+const row = (what: string, turns: string, cost: string, me = false) => `
   <tr class="${me ? 'me' : ''}">
     <td class="what">${what}</td>
-    <td class="num" style="color:${me ? '#4ade80' : '#f0a5a5'}">${perPage}</td>
-    <td class="num" style="color:${me ? '#4ade80' : '#c9d6ee'};opacity:${me ? 1 : .75}">${toFill}</td>
+    <td class="num" style="color:${me ? '#4ade80' : '#f0a5a5'}">${turns}</td>
+    <td class="num" style="color:${me ? '#4ade80' : '#c9d6ee'};opacity:${me ? 1 : .75}">${cost}</td>
   </tr>`;
 await card([
-  `<div class="kicker">HOW THIS COMPARES</div>`,
+  `<div class="kicker">FILLING ONE FORM</div>`,
   `<table class="cmp">
-     <tr><th>what the agent receives</th><th>per page</th><th>to fill a 7-field form</th></tr>
-     ${row('a screenshot', '57,134 tok', 'one look per turn')}
-     ${row('an accessibility snapshot', '14,170 tok', '9 turns, re-sent each one')}
-     ${row('element refs', '~158 tok', '1 snapshot + 7 actions')}
-     ${row('Deputy — a typed schema', '611 tok', 'one call', true)}
+     <tr><th>what the agent works from</th><th>agent turns</th><th>what each turn re-reads</th></tr>
+     ${row('a screenshot', 'one look per field', '57,134 tok')}
+     ${row('an accessibility snapshot', '9', '14,170 tok')}
+     ${row('element refs', '1 snapshot + 7 actions', 'the whole context')}
+     ${row('Deputy — a typed schema', '1 call', '611 tok, once', true)}
    </table>`,
-  `<div class="sub" style="margin-top:26px;max-width:56ch">Ref-based tools send less per page.
-     Deputy sends fewer turns — and a turn costs the whole context, not just the payload.</div>`,
+  `<div class="sub" style="margin-top:26px;max-width:58ch">Ref-based tools send the least per page —
+     about 158 tokens. They just send it seven more times, and a turn re-reads everything before it.</div>`,
 ], 240);
-await hold(7200);
+await hold(7400);
 
 // 8 ── close
 await card([
   `<div class="big" style="font-size:44px;max-width:22ch">We taught a website to describe itself to an agent —
      <span class="mono">without its cooperation</span>.</div>`,
   `<div class="sub" style="margin-top:30px">The browser generated the schema.<br>
-     The browser performed the call.<br>Deputy wrote six attributes.</div>`,
+     The browser performed the call.<br>Deputy wrote four attributes.</div>`,
 ], 320);
 await hold(5600);
 

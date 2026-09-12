@@ -36,7 +36,7 @@ Living document. Updated at every block boundary, not at the end.
 ```
 
 **The load-bearing idea:** Chromium already synthesizes JSON Schema from a form and already executes
-the submission. Graft does not reimplement either. It writes six HTML attributes and the browser does
+the submission. Graft does not reimplement either. It writes four HTML attributes and the browser does
 the rest. Everything else here is plumbing around that fact.
 
 ---
@@ -371,12 +371,12 @@ assigning a value — the page's own handler is what updates `aria-checked` and 
 behind it. Real inputs go through the prototype's native `value` setter, because React caches the
 previous value on the node and swallows a plain assignment.
 
-### Proven on the real thing
+### Proven on real pages
 
-The hackathon's own submission page — 25 inputs, **none inside a `<form>`** — becomes
-`agents_everywhere`, a 24-field typed tool: booleans for the nine sponsor checkboxes, `uri` for the
-video and social links, and `project_name`, `brief_description`, `social_post_proof_1` correctly
-marked required.
+Measured on live sites, not only fixtures. A conference entry form with **25 inputs, none inside a
+`<form>`**, became a 24-field typed tool: booleans for each checkbox, `uri` for the link fields, and
+three fields correctly marked required. `examples/intake.html` in this repo is the same shape and is
+what the demo records against — 10 controls, none in a form, one typed tool.
 
 **Untested:** a live Google Form. The fixture replicates its DOM patterns and passes, but Google
 serves a heavily obfuscated page and may differ in ways the fixture does not capture. Treat Google
