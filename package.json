@@ -1,0 +1,25 @@
+{
+  "name": "graft",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bash scripts/dev.sh",
+    "start": "bun packages/deputyd/src/index.ts",
+    "test": "bun test packages/*/test/",
+    "test:browser": "bash scripts/kill-browsers.sh && bun test packages/*/test-browser/ --timeout 20000 ; bash scripts/kill-browsers.sh",
+    "kill-browsers": "bash scripts/kill-browsers.sh",
+    "build:ext": "bun scripts/build-extension.ts"
+  },
+  "dependencies": {
+    "@a2a-js/sdk": "^1.1.0",
+    "@modelcontextprotocol/express": "^2.0.0",
+    "@modelcontextprotocol/node": "^2.0.0",
+    "@modelcontextprotocol/server": "^2.0.0",
+    "express": "^5.1.0",
+    "ws": "^8.18.0",
+    "zod": "^4.2.0"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.2.9"
+  }
+}

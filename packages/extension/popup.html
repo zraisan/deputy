@@ -1,0 +1,19 @@
+<meta charset="utf-8">
+<title>Deputy</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font: 13px/1.5 system-ui, sans-serif; margin: 0; padding: 14px; min-width: 280px; }
+  h1 { font-size: 13px; margin: 0 0 10px; letter-spacing: .02em; text-transform: uppercase; opacity: .6; }
+  .status { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #999; flex: none; }
+  .dot.on { background: #23a55a; }
+  ul { list-style: none; margin: 0; padding: 0; }
+  li { display: flex; gap: 8px; align-items: baseline; padding: 4px 0; border-top: 1px solid color-mix(in srgb, currentColor 12%, transparent); }
+  code { font: 12px ui-monospace, monospace; }
+  .tag { font-size: 10px; text-transform: uppercase; letter-spacing: .04em; opacity: .55; }
+  .empty { opacity: .55; }
+</style>
+<h1>Deputy</h1>
+<div class="status"><span class="dot" id="dot"></span><span id="state">checking…</span></div>
+<ul id="tools"></ul>
+<script src="popup.js"></script>

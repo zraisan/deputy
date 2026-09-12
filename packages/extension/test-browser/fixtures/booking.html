@@ -1,0 +1,26 @@
+<!doctype html><meta charset=utf-8><title>Acme Travel</title>
+<h1>Acme Travel</h1>
+<form id="booking" action="/book" method="post">
+  <fieldset>
+    <legend>Book a table</legend>
+    <label for="party">Party size</label>
+    <input id="party" name="party_size" type="number" min="1" required>
+    <label for="when">Date of booking</label>
+    <input id="when" name="date" type="date" required>
+    <label for="seat">Seating preference</label>
+    <select id="seat" name="seating">
+      <option value="indoor">Indoor</option>
+      <option value="outdoor">Outdoor</option>
+    </select>
+    <input type="hidden" name="csrf" value="xyz">
+    <button type="submit">Reserve</button>
+  </fieldset>
+</form>
+<script>
+  window.__submissions = [];
+  document.getElementById('booking').addEventListener('submit', (e) => {
+    e.preventDefault();
+    window.__submissions.push({ data: Object.fromEntries(new FormData(e.target)), agentInvoked: e.agentInvoked });
+    if (e.respondWith) e.respondWith(Promise.resolve('Booked'));
+  });
+</script>

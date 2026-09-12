@@ -1,0 +1,42 @@
+<!doctype html><meta charset="utf-8"><title>Survey</title>
+<style>body{font:15px/1.6 system-ui;max-width:640px;margin:40px auto;padding:0 20px}
+ .q{border:1px solid #ddd;border-radius:8px;padding:16px;margin:14px 0}
+ .t{font-weight:600;margin-bottom:8px}
+ [role=radio],[role=checkbox]{display:block;padding:6px 0;cursor:pointer}
+ [role=radio][aria-checked=true]::before{content:"● "}[role=radio][aria-checked=false]::before{content:"○ "}
+ [role=checkbox][aria-checked=true]::before{content:"☑ "}[role=checkbox][aria-checked=false]::before{content:"☐ "}
+ [contenteditable]{border-bottom:2px solid #999;min-height:1.5em;padding:4px}</style>
+<h1>Project Survey</h1>
+<!-- Mirrors how Google Forms actually builds a form: ARIA widgets, not form controls. -->
+<div class="q" role="listitem">
+  <div class="t" id="q1">Your name</div>
+  <input type="text" aria-labelledby="q1">
+</div>
+<div class="q" role="listitem">
+  <div class="t" id="q2">Tell us about your project</div>
+  <div contenteditable="true" role="textbox" aria-labelledby="q2"></div>
+</div>
+<div class="q" role="listitem">
+  <div class="t" id="q3">Primary language</div>
+  <div role="radiogroup" aria-labelledby="q3">
+    <div role="radio" aria-checked="false" data-value="TypeScript">TypeScript</div>
+    <div role="radio" aria-checked="false" data-value="Python">Python</div>
+    <div role="radio" aria-checked="false" data-value="Go">Go</div>
+  </div>
+</div>
+<div class="q" role="listitem">
+  <div class="t" id="q4">Which did you use?</div>
+  <div role="group" aria-labelledby="q4">
+    <div role="checkbox" aria-checked="false" data-value="OpenRouter">OpenRouter</div>
+    <div role="checkbox" aria-checked="false" data-value="Claude">Claude</div>
+  </div>
+</div>
+<script>
+ for (const el of document.querySelectorAll('[role=radio],[role=checkbox]')) {
+   el.onclick = () => {
+     if (el.getAttribute('role') === 'radio')
+       for (const s of el.parentElement.children) s.setAttribute('aria-checked','false');
+     el.setAttribute('aria-checked', el.getAttribute('aria-checked') === 'true' ? 'false' : 'true');
+   };
+ }
+</script>

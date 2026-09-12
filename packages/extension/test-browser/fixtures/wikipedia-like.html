@@ -1,0 +1,21 @@
+<!doctype html><meta charset=utf-8><title>Wikipedia, the free encyclopedia</title>
+<!-- The real Wikipedia renders its search form twice. Both derive the same name. -->
+<form id="searchform-top" action="/w/index.php" method="get">
+  <input name="search" aria-label="Search Wikipedia" placeholder="Search Wikipedia">
+  <button type="submit">Search</button>
+</form>
+<h1>Welcome to Wikipedia</h1>
+<form id="searchform-bottom" action="/w/index.php" method="get">
+  <input name="search" aria-label="Search Wikipedia" placeholder="Search Wikipedia">
+  <button type="submit">Search</button>
+</form>
+<script>
+  window.__submissions = [];
+  for (const f of document.querySelectorAll('form')) {
+    f.addEventListener('submit', (e) => {
+      e.preventDefault();
+      window.__submissions.push({ form: f.id, data: Object.fromEntries(new FormData(f)), agentInvoked: e.agentInvoked });
+      if (e.respondWith) e.respondWith(Promise.resolve('Results for ' + new FormData(f).get('search')));
+    });
+  }
+</script>

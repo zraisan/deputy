@@ -1,0 +1,23 @@
+<!doctype html><meta charset=utf-8><title>Modern Site</title>
+<h1>Modern Site</h1>
+<!-- This site implements WebMCP itself. Graft must not touch its tools. -->
+<form id="native-form" toolname="native_declared" tooldescription="A tool the site declared itself">
+  <input name="q" toolparamdescription="The site's own parameter">
+  <button type="submit">Go</button>
+</form>
+<!-- ...but this plain form alongside it should still get grafted. -->
+<form id="plain" action="/feedback" method="post">
+  <label for="msg">Your feedback</label><textarea id="msg" name="message"></textarea>
+  <button type="submit">Send feedback</button>
+</form>
+<script>
+  document.modelContext?.registerTool({
+    name: 'imperative_declared',
+    description: 'Registered by the page in JavaScript',
+    inputSchema: { type: 'object', properties: { x: { type: 'number' } } },
+    async execute({ x }) { return 'page handled ' + x; },
+  });
+  for (const f of document.querySelectorAll('form')) {
+    f.addEventListener('submit', (e) => { e.preventDefault(); if (e.respondWith) e.respondWith(Promise.resolve('ok')); });
+  }
+</script>

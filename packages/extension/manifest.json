@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Deputy",
+  "version": "0.1.0",
+  "description": "Your browser, as an agent other agents can delegate to.",
+  "minimum_chrome_version": "116",
+  "permissions": ["tabs", "scripting", "storage", "alarms"],
+  "host_permissions": ["<all_urls>"],
+  "background": { "service_worker": "sw.js", "type": "module" },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ],
+  "action": { "default_title": "Deputy", "default_popup": "popup.html" }
+}

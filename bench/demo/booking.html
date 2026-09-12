@@ -1,0 +1,46 @@
+<!doctype html><meta charset="utf-8"><title>Acme Travel — Reservations</title>
+<style>
+ body{font:15px/1.6 system-ui,sans-serif;max-width:640px;margin:40px auto;padding:0 20px}
+ label{display:block;margin:14px 0 4px;font-weight:600}
+ input,select,textarea{width:100%;padding:8px;font:inherit;border:1px solid #bbb;border-radius:6px}
+ button{margin-top:20px;padding:10px 20px;font:inherit;border-radius:6px;border:0;background:#1a6;color:#fff}
+ #done{margin-top:20px;padding:12px;background:#efe;border:1px solid #7c7;border-radius:6px;display:none}
+</style>
+<h1>Acme Travel</h1>
+<form id="booking" action="/reserve" method="get">
+  <fieldset style="border:0;padding:0">
+    <legend style="font-size:20px;font-weight:700">Book a table</legend>
+    <label for="name">Full name</label>
+    <input id="name" name="guest_name" required>
+    <label for="email">Email address</label>
+    <input id="email" name="email" type="email" required>
+    <label for="party">Party size</label>
+    <input id="party" name="party_size" type="number" min="1" max="12" required>
+    <label for="when">Date of booking</label>
+    <input id="when" name="date" type="date" required>
+    <label for="time">Preferred time</label>
+    <input id="time" name="time" type="time" required>
+    <label for="seat">Seating preference</label>
+    <select id="seat" name="seating">
+      <option value="indoor">Indoor</option>
+      <option value="outdoor">Outdoor — terrace</option>
+      <option value="bar">At the bar</option>
+    </select>
+    <label for="notes">Dietary notes</label>
+    <textarea id="notes" name="notes" rows="2"></textarea>
+    <input type="hidden" name="csrf" value="tok_123">
+    <button type="submit">Reserve table</button>
+  </fieldset>
+</form>
+<div id="done"></div>
+<script>
+  document.getElementById('booking').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(e.target));
+    window.__submitted = data;
+    const el = document.getElementById('done');
+    el.style.display = 'block';
+    el.textContent = 'RESERVED: ' + JSON.stringify(data);
+    if (e.respondWith) e.respondWith(Promise.resolve('Reserved for ' + data.guest_name + ', party of ' + data.party_size));
+  });
+</script>

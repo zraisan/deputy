@@ -1,0 +1,21 @@
+- generic [active] [ref=e1]:
+  - heading "Acme Travel" [level=1] [ref=e2]
+  - group "Book a table" [ref=e4]:
+    - generic [ref=e6]: Full name
+    - textbox "Full name" [ref=e7]
+    - generic [ref=e8]: Email address
+    - textbox "Email address" [ref=e9]
+    - generic [ref=e10]: Party size
+    - spinbutton "Party size" [ref=e11]
+    - generic [ref=e12]: Date of booking
+    - textbox "Date of booking" [ref=e13]
+    - generic [ref=e14]: Preferred time
+    - textbox "Preferred time" [ref=e15]
+    - generic [ref=e16]: Seating preference
+    - combobox "Seating preference" [ref=e17]:
+      - option "Indoor" [selected]
+      - option "Outdoor — terrace"
+      - option "At the bar"
+    - generic [ref=e18]: Dietary notes
+    - textbox "Dietary notes" [ref=e19]
+    - button "Reserve table" [ref=e20]
