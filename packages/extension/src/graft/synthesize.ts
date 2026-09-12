@@ -136,6 +136,47 @@ function applyValue(el: Control, raw: unknown) {
  *
  * A Widget is whatever we can describe and set, real control or not.
  */
+
+/**
+ * Query across open shadow roots.
+ *
+ * `document.querySelectorAll` stops at every shadow boundary, so a page built
+ * from web components looks empty. MDN's homepage is the clean example: zero
+ * forms and zero inputs in the light DOM, 18 open shadow roots, and the search
+ * box inside one of them. Anything a user can see and type into should be
+ * reachable, wherever the page chose to put it.
+ *
+ * Closed roots are genuinely unreachable — nothing to be done about those.
+ */
+export function deepQueryAll<T extends Element = Element>(root: ParentNode, selector: string): T[] {
+  const found: T[] = [];
+  const seenRoots = new Set<ParentNode>();
+
+  const walk = (node: ParentNode) => {
+    if (seenRoots.has(node)) return;
+    seenRoots.add(node);
+    found.push(...Array.from(node.querySelectorAll<T>(selector)));
+    for (const el of Array.from(node.querySelectorAll('*'))) {
+      const shadow = (el as HTMLElement).shadowRoot;
+      if (shadow) walk(shadow);
+    }
+  };
+  walk(root);
+  return found;
+}
+
+/** `closest` does not cross shadow boundaries either; climb through the hosts. */
+function deepClosest(el: Element, selector: string): Element | null {
+  let node: Element | null = el;
+  while (node) {
+    const hit = node.closest(selector);
+    if (hit) return hit;
+    const root = node.getRootNode();
+    node = root instanceof ShadowRoot ? (root.host as Element) : null;
+  }
+  return null;
+}
+
 type Widget =
   | { kind: 'control'; el: Control; label: string }
   | { kind: 'radiogroup'; el: HTMLElement; label: string; options: HTMLElement[] }
@@ -165,14 +206,14 @@ function collectWidgets(doc: Document): Widget[] {
   const claimed = new Set<Element>();
 
   // Composites first, so their children are not also collected individually.
-  for (const group of Array.from(doc.querySelectorAll<HTMLElement>('[role="radiogroup"]'))) {
+  for (const group of Array.from(deepQueryAll<HTMLElement>(doc, '[role="radiogroup"]'))) {
     const options = Array.from(group.querySelectorAll<HTMLElement>('[role="radio"]'));
     if (options.length === 0) continue;
     options.forEach((o) => claimed.add(o));
     claimed.add(group);
     out.push({ kind: 'radiogroup', el: group, label: ariaLabelOf(group), options });
   }
-  for (const box of Array.from(doc.querySelectorAll<HTMLElement>('[role="listbox"], [role="combobox"]'))) {
+  for (const box of Array.from(deepQueryAll<HTMLElement>(doc, '[role="listbox"], [role="combobox"]'))) {
     const options = Array.from(box.querySelectorAll<HTMLElement>('[role="option"]'));
     if (options.length === 0) continue;
     options.forEach((o) => claimed.add(o));
@@ -180,7 +221,7 @@ function collectWidgets(doc: Document): Widget[] {
     out.push({ kind: 'listbox', el: box, label: ariaLabelOf(box), options });
   }
   // Loose radios that were never wrapped in a radiogroup: group them by their container.
-  const looseRadios = Array.from(doc.querySelectorAll<HTMLElement>('[role="radio"]')).filter((r) => !claimed.has(r));
+  const looseRadios = Array.from(deepQueryAll<HTMLElement>(doc, '[role="radio"]')).filter((r) => !claimed.has(r));
   const byParent = new Map<HTMLElement, HTMLElement[]>();
   for (const r of looseRadios) {
     const parent = (r.parentElement ?? r) as HTMLElement;
@@ -190,21 +231,21 @@ function collectWidgets(doc: Document): Widget[] {
     options.forEach((o) => claimed.add(o));
     out.push({ kind: 'radiogroup', el: parent, label: ariaLabelOf(parent), options });
   }
-  for (const cb of Array.from(doc.querySelectorAll<HTMLElement>('[role="checkbox"]'))) {
+  for (const cb of Array.from(deepQueryAll<HTMLElement>(doc, '[role="checkbox"]'))) {
     if (claimed.has(cb)) continue;
     claimed.add(cb);
     out.push({ kind: 'checkbox', el: cb, label: optionLabel(cb) || ariaLabelOf(cb) });
   }
-  for (const tb of Array.from(doc.querySelectorAll<HTMLElement>('[contenteditable="true"], [role="textbox"]'))) {
+  for (const tb of Array.from(deepQueryAll<HTMLElement>(doc, '[contenteditable="true"], [role="textbox"]'))) {
     if (claimed.has(tb) || tb.closest('input, textarea')) continue;
     claimed.add(tb);
     out.push({ kind: 'textbox', el: tb, label: ariaLabelOf(tb) });
   }
 
   // Then the genuine form controls Tier 1 did not already take.
-  for (const el of Array.from(doc.querySelectorAll<Control>('input, select, textarea'))) {
+  for (const el of Array.from(deepQueryAll<Control>(doc, 'input, select, textarea'))) {
     if (claimed.has(el)) continue;
-    if (el.closest('form[toolname]')) continue;
+    if (deepClosest(el, 'form[toolname]')) continue;
     if (el instanceof HTMLInputElement && SKIP_TYPES.has(el.type)) continue;
     if (el.disabled || (el as HTMLInputElement).readOnly) continue;
     if (!el.checkVisibility?.()) continue;
@@ -232,9 +273,43 @@ function schemaForWidget(w: Widget): Record<string, unknown> {
   }
 }
 
+
+/**
+ * Mark a field as Deputy sets it.
+ *
+ * The whole point of a typed call is that it lands in one shot, but a person
+ * watching needs to see which field just changed — otherwise a filled form
+ * reads as the page teleporting. Each control is outlined as its value is
+ * written, and scrolled into view so the change is never off-screen.
+ */
+const HIGHLIGHT_STYLE_ID = '__deputy_fill_style';
+
+function ensureHighlightStyle(doc: Document) {
+  if (doc.getElementById(HIGHLIGHT_STYLE_ID)) return;
+  const style = doc.createElement('style');
+  style.id = HIGHLIGHT_STYLE_ID;
+  style.textContent =
+    '@keyframes __deputyPulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.55)}' +
+    '70%{box-shadow:0 0 0 12px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}' +
+    '.__deputy_writing{outline:2.5px solid #22c55e!important;outline-offset:3px;border-radius:6px;' +
+    'background:rgba(34,197,94,.10)!important;animation:__deputyPulse 1s ease-out;' +
+    'transition:outline-color .5s ease,background .5s ease}';
+  doc.head.appendChild(style);
+}
+
+function markWriting(el: HTMLElement) {
+  try {
+    ensureHighlightStyle(el.ownerDocument);
+    el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    el.classList.add('__deputy_writing');
+    setTimeout(() => el.classList.remove('__deputy_writing'), 1600);
+  } catch { /* cosmetic only; never fail a fill over it */ }
+}
+
 const ariaChecked = (el: HTMLElement) => el.getAttribute('aria-checked') === 'true';
 
 async function applyWidget(w: Widget, raw: unknown) {
+  markWriting(w.el as HTMLElement);
   if (w.kind === 'control') { applyValue(w.el, raw); return; }
 
   const value = raw === null || raw === undefined ? '' : String(raw);
@@ -317,7 +392,10 @@ export function synthesizeLooseForm(
         if (!w || value === undefined) continue;
         await applyWidget(w, value);
         set.push(key);
-        await new Promise((r) => setTimeout(r, 90));
+        // Deliberately paced. Frameworks settle between writes, and a person
+        // watching can actually see each field take its value — an instant
+        // form-fill reads as the page teleporting.
+        await new Promise((r) => setTimeout(r, 240));
       }
       return `Filled ${set.length} field(s): ${set.join(', ')}. Nothing was submitted — review and submit yourself.`;
     },

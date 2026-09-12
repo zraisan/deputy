@@ -117,3 +117,25 @@ describe('dedupeNames', () => {
     for (const n of dedupeNames([long, long])) expect(n.length).toBeLessThanOrEqual(40);
   });
 });
+
+describe('field labels name data, not actions', () => {
+  // Measured on w3schools: three separate forms became first_name / firstname / fname.
+  test('a field-derived name is prefixed with the submit verb', () => {
+    expect(deriveToolName(sig({ submitLabel: 'Submit', primaryFieldLabel: 'First name' })))
+      .toBe('submit_first_name');
+  });
+
+  test('a specific submit label still wins outright', () => {
+    expect(deriveToolName(sig({ submitLabel: 'Sign in', primaryFieldLabel: 'Email address' })))
+      .toBe('sign_in');
+  });
+
+  test('no doubling when the field label already starts with the verb', () => {
+    expect(deriveToolName(sig({ submitLabel: 'Search', primaryFieldLabel: 'Search Wikipedia' })))
+      .toBe('search_wikipedia');
+  });
+
+  test('a field-derived name survives with no submit label at all', () => {
+    expect(deriveToolName(sig({ primaryFieldLabel: 'Coupon code' }))).toBe('coupon_code');
+  });
+});

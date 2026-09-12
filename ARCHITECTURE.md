@@ -329,3 +329,119 @@ The distinction worth keeping clear: PinchTab hands the agent a better **map** o
 hands it a **typed API** — a seven-field form becomes one validated call rather than seven
 ref-targeted actions, and Chromium performs the submission natively because the form was retrofitted
 into a real WebMCP tool. `browser_fill` exists for the pages where that retrofit is impossible.
+
+---
+
+## 11. Tier 2: pages with no `<form>`
+
+Tier 1 writes attributes onto a real `<form>` and lets Chromium synthesize the schema and perform
+the submission. Large parts of the web have no `<form>` at all — Google Forms, React apps, anything
+that wires divs to click handlers. Those pages got nothing.
+
+**Tier 2 builds the tool itself.** It reads whatever controls exist, synthesizes the same shape of
+JSON Schema Chromium would have produced, and registers it through `document.modelContext.registerTool`.
+The agent cannot tell the tiers apart — one typed call either way. That equivalence is the point:
+falling back to "click this ref, then type into that one" would hand the per-step cost straight back
+to the caller, which is the thing the project exists to remove.
+
+### ARIA widgets are most of the problem
+
+A query for `input, select, textarea` is not enough. Google Forms and most design systems build
+choices out of `div`s:
+
+| on screen | actually |
+|---|---|
+| multiple choice | `role="radiogroup"` wrapping `role="radio"` |
+| checkboxes | `role="checkbox"` |
+| dropdown | `role="listbox"` wrapping `role="option"` |
+| paragraph answer | `contenteditable` / `role="textbox"` |
+
+Measured on a Google-Forms-shaped page before the fix: **1 field out of 4**. After collecting ARIA
+widgets alongside real controls: **5 of 5**, verified from the live DOM —
+
+```
+text input     : "Zain Raisan"
+contenteditable: "Deputy turns any page into a typed tool."
+radio checked  : TypeScript=true, Python=false, Go=false     ← exclusive, correct
+checkboxes     : OpenRouter=true, Claude=true
+```
+
+Setting them is its own problem. A radio group is set by **clicking** the matching option, not by
+assigning a value — the page's own handler is what updates `aria-checked` and any framework state
+behind it. Real inputs go through the prototype's native `value` setter, because React caches the
+previous value on the node and swallows a plain assignment.
+
+### Proven on the real thing
+
+The hackathon's own submission page — 25 inputs, **none inside a `<form>`** — becomes
+`agents_everywhere`, a 24-field typed tool: booleans for the nine sponsor checkboxes, `uri` for the
+video and social links, and `project_name`, `brief_description`, `social_post_proof_1` correctly
+marked required.
+
+**Untested:** a live Google Form. The fixture replicates its DOM patterns and passes, but Google
+serves a heavily obfuscated page and may differ in ways the fixture does not capture. Treat Google
+Forms as likely-working, not verified.
+
+---
+
+## 12. Tier 0: tools the app already wrote
+
+Before grafting a form or synthesizing from loose inputs, check whether the page has already declared
+its capabilities to its own embedded copilot.
+
+CopilotKit's `useCopilotAction` (v2: `useFrontendTool`), the Vercel AI SDK and assistant-ui all make
+an app author write a tool name, a description and a parameter schema. That is strictly better input
+than anything inferred from the DOM, because a human wrote it deliberately and knows what the action
+means.
+
+**Getting at it.** Those registrations live in a React context, unreachable from an isolated content
+script, and walking the fiber tree would break on every framework release. But the app *sends* them:
+CopilotKit posts its `actions` array to `/api/copilotkit` on the first turn. So a MAIN-world script
+installed at `document_start` patches `fetch` and `XMLHttpRequest.send`, watches for known agent
+endpoints, and reads the manifest as it goes past. The request is forwarded untouched — this is a
+read, not an interception.
+
+`extractTools()` is deliberately shape-driven rather than schema-versioned, because these payloads
+are undocumented and change: it walks the body looking for anything with a name and a schema, and
+normalizes CopilotKit's `parameters: [{name, type, required}]` array into JSON Schema.
+
+**The distinction that took a bug to find:** a tool carries a schema; a *parameter* is a name, a
+description and a primitive type. Without separating them the recursion registers every argument as
+its own tool — measured on a real CopilotKit payload, a two-action manifest produced six tools.
+
+### The three tiers, in order of preference
+
+| tier | source | why it ranks here |
+|---|---|---|
+| **0** | the app's own copilot manifest | a human wrote the description on purpose |
+| **1** | a real `<form>` + WebMCP attributes | Chromium generates the schema and executes |
+| **2** | loose inputs and ARIA widgets | inferred, but still one typed call |
+
+All three surface identically through `browser_capabilities`. The agent never needs to know which
+tier a tool came from.
+
+---
+
+## 13. CopilotKit: a shared registry, not an adapter
+
+`@copilotkit/core` contains a `WebMCPRegistry` whose `sync(desired)` reconciles an app's frontend
+tools against `document.modelContext`, registering each with `registerTool` and unregistering by
+aborting its signal. `getWebMCPModelContext()` is simply `document.modelContext ?? null`.
+
+That is the same registry Deputy grafts into. **No adapter is required in either direction**, which
+is the strongest form an integration can take:
+
+- A CopilotKit v2 app's tools arrive in `document.modelContext` with **live handlers**, so Deputy
+  reports them as `source: "native"` and they execute for real through `executeTool`. The existing
+  integration test `a site's own declared tools survive untouched` already covers exactly this path —
+  it asserts that a tool registered by the page via `registerTool` survives grafting and stays callable.
+- Deputy's grafted tools land in the same place CopilotKit reads from, so a CopilotKit copilot
+  inherits them.
+
+CopilotKit **v1** predates this. Its actions never reach the DOM; they are POSTed to
+`/api/copilotkit` as a `parameters: [{name, type, required}]` array. Deputy's MAIN-world reader picks
+that manifest up in passing and normalizes it to JSON Schema (§12). Read-only — the declaration is
+surfaced, execution stays with the app's own copilot.
+
+**The general lesson:** the retrofit is a bridge to a standard, not to a vendor. Anything that speaks
+`document.modelContext` — CopilotKit today, more later — interoperates with Deputy by construction.

@@ -9,7 +9,7 @@
  * and execute a tool when the daemon asks.
  */
 import { annotateDocument } from './graft/annotate';
-import { synthesizeLooseForm } from './graft/synthesize';
+import { synthesizeLooseForm, deepQueryAll } from './graft/synthesize';
 import type { DeputyTool, TabEntry } from '../../shared/src/protocol';
 
 type ModelContext = {
@@ -26,6 +26,40 @@ const mc = (): ModelContext | null =>
 const consequential = new Set<string>();
 /** Tools we synthesized for form-less pages. registerTool rejects duplicates. */
 const synthesized = new Set<string>();
+
+/**
+ * Tools the page declared to its own in-app copilot, seen by the MAIN-world
+ * script as the app posted them to its runtime. The app author wrote these
+ * descriptions deliberately, so they beat anything we infer from the DOM.
+ */
+const inAppTools: Array<{ name: string; description: string; inputSchema: Record<string, unknown> }> = [];
+
+window.addEventListener('message', (event) => {
+  if (event.source !== window) return;
+  const data = event.data;
+  if (!data?.__deputy_inapp || !Array.isArray(data.tools)) return;
+
+  const ctx = mc();
+  for (const tool of data.tools) {
+    if (synthesized.has(tool.name)) continue;
+    synthesized.add(tool.name);
+    inAppTools.push(tool);
+    try {
+      ctx?.registerTool?.({
+        name: tool.name,
+        description: `${tool.description} (declared by this page for its ${data.framework} copilot)`,
+        inputSchema: tool.inputSchema,
+        // The page's own copilot owns execution; we surface the declaration so
+        // an external agent can see what this app can do.
+        async execute() {
+          return `"${tool.name}" is declared by this page for its own ${data.framework} copilot. ` +
+            `Deputy surfaced the declaration; triggering it is not wired up.`;
+        },
+      });
+    } catch { /* duplicate name, or the page rejected it */ }
+  }
+  void graftAndReport('in-app tools');
+});
 
 function recordConsequential() {
   consequential.clear();
@@ -119,7 +153,8 @@ function pageActions(): Array<Record<string, unknown>> {
   let n = 0;
   const seen = new Set<Element>();
 
-  for (const el of document.querySelectorAll<HTMLElement>(
+  for (const el of deepQueryAll<HTMLElement>(
+    document,
     'button, a[href], [role="button"], [role="link"], [role="tab"], input[type="submit"], ' +
     'input[type="button"], summary, input, select, textarea, [contenteditable="true"]',
   )) {

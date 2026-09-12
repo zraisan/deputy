@@ -1,0 +1,34 @@
+<!doctype html><meta charset="utf-8"><title>Acme Dashboard</title>
+<style>body{font:15px/1.6 system-ui;max-width:640px;margin:40px auto;padding:0 20px}
+ .note{background:#eef;padding:12px;border-radius:8px;margin:16px 0}
+ button{padding:9px 16px;font:inherit;border:0;border-radius:6px;background:#36c;color:#fff}</style>
+<h1>Acme Dashboard</h1>
+<p>A React app with an embedded CopilotKit copilot. Its actions are registered with
+   <code>useCopilotAction</code> and never appear in the DOM.</p>
+<div class="note" id="s">Copilot idle.</div>
+<button id="go">Ask the in-app copilot</button>
+<script>
+// What CopilotKit posts to its runtime on the first turn: the registered actions.
+document.getElementById('go').onclick = async () => {
+  document.getElementById('s').textContent = 'Copilot thinking…';
+  await fetch('/api/copilotkit', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      copilotkit: { version: '1.9.0' },
+      messages: [{ role: 'user', content: 'refund the last order' }],
+      actions: [
+        { name: 'refundOrder', description: 'Refund a customer order by its id',
+          parameters: [
+            { name: 'orderId', type: 'string', description: 'The order to refund', required: true },
+            { name: 'reason', type: 'string', description: 'Why it is being refunded' },
+            { name: 'notifyCustomer', type: 'boolean', description: 'Email the customer' }
+          ] },
+        { name: 'setDashboardRange', description: 'Change the dashboard date range',
+          parameters: [{ name: 'range', type: 'string', description: 'Range', required: true, enum: ['7d','30d','90d'] }] }
+      ]
+    })
+  }).catch(() => {});
+  document.getElementById('s').textContent = 'Copilot posted its actions to /api/copilotkit.';
+};
+</script>

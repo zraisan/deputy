@@ -13,6 +13,10 @@ export type AnnotationReport = {
   grafted: string[];
   /** Identifiers of forms we deliberately left alone (the site declared them). */
   skipped: string[];
+  /** Forms dropped as a repeat of a capability already grafted on this page. */
+  duplicates: string[];
+  /** Forms dropped for having no fillable control at all. */
+  empty: string[];
 };
 
 const TOOL_NAME_ATTR = 'toolname';
@@ -119,21 +123,45 @@ function describe(form: HTMLFormElement, name: string, doc: Document): string {
 
 export function annotateDocument(doc: Document): AnnotationReport {
   const forms = Array.from(doc.querySelectorAll('form'));
-  const report: AnnotationReport = { grafted: [], skipped: [] };
+  const report: AnnotationReport = { grafted: [], skipped: [], duplicates: [], empty: [] };
 
   // Idempotence: anything already carrying a toolname is either the site's own
   // declaration or our previous pass. Both must survive untouched, or an SPA
   // re-render would churn the agent's tool list on every keystroke.
   const pending: HTMLFormElement[] = [];
   const taken = new Set<string>();
+  const signatures = new Set<string>();
+
   for (const form of forms) {
     const existing = form.getAttribute(TOOL_NAME_ATTR);
     if (existing) {
       taken.add(existing);
       report.skipped.push(form.id || existing);
-    } else {
-      pending.push(form as HTMLFormElement);
+      continue;
     }
+
+    // A form with no fillable control is not a capability. Sites are full of
+    // these — sign-in-with-Google buttons, CSRF-only logout stubs — and each
+    // one would cost the agent a tool definition that can never be called.
+    const controls = controlsOf(form as HTMLFormElement);
+    if (controls.length === 0) {
+      report.empty.push(form.id || '(unnamed form)');
+      continue;
+    }
+
+    // Header and footer search boxes are the same capability twice. Same target,
+    // same method, same fields means one tool, not two.
+    const signature = [
+      (form.getAttribute('action') ?? '').trim(),
+      (form.getAttribute('method') ?? 'get').toLowerCase(),
+      controls.map((c) => c.name).sort().join(','),
+    ].join('|');
+    if (signatures.has(signature)) {
+      report.duplicates.push(form.id || '(unnamed form)');
+      continue;
+    }
+    signatures.add(signature);
+    pending.push(form as HTMLFormElement);
   }
   if (pending.length === 0) return report;
 

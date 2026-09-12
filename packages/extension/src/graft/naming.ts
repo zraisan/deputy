@@ -96,7 +96,20 @@ export function deriveToolName(signals: FormSignals): string {
   let chosen = '';
   if (candidates.length > 0) {
     candidates.sort((a, b) => specificity(b.name) - specificity(a.name) || a.priority - b.priority);
-    chosen = candidates[0]!.name;
+    const winner = candidates[0]!;
+    chosen = winner.name;
+
+    // Priority 3 is the first field's label. A field names *data*, not an
+    // action: "first_name" reads like a parameter, not something you can call.
+    // If there is a submit verb — even a generic one — lead with it, so the
+    // tool is named after what it does. (Measured on w3schools, which produced
+    // three tools called first_name, firstname and fname.)
+    if (winner.priority === 3) {
+      const verb = normalizeName(signals.submitLabel ?? '');
+      if (verb && verb !== chosen && !chosen.startsWith(verb)) {
+        chosen = truncate(`${verb}_${chosen}`, MAX_NAME_LENGTH);
+      }
+    }
   } else if (signals.action) {
     // Machine-facing, so only consulted when no human wrote anything usable.
     chosen = normalizeName(pathOf(signals.action));

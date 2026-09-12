@@ -29,12 +29,16 @@ async function graft(fixture: string) {
 }
 
 describe('the Wikipedia regression, end to end', () => {
-  test('both copies of the search form become distinctly named, meaningful tools', async () => {
-    const { tools } = await graft('wikipedia-like.html');
-    const names = tools.map((t) => t.name).sort();
-    expect(names).toEqual(['search_wikipedia', 'search_wikipedia_2']);
+  test('the duplicated search form collapses to a single meaningful tool', async () => {
+    // Wikipedia renders its search form twice, header and footer. Same action,
+    // same method, same fields — that is one capability, not two, and shipping
+    // it twice would cost the agent a tool definition for nothing.
+    const { tools, report } = await graft('wikipedia-like.html');
+    const names = tools.map((t) => t.name);
+    expect(names).toEqual(['search_wikipedia']);
     // The failure this replaced: "w_index_php_0" / "w_index_php_1".
-    for (const n of names) expect(n).not.toContain('index');
+    expect(names[0]).not.toContain('index');
+    expect(report.duplicates).toEqual(['searchform-bottom']);
   });
 
   test('the tool actually searches when an agent calls it', async () => {
@@ -100,6 +104,8 @@ describe('coexisting with sites that implement WebMCP themselves', () => {
     const { report } = await graft('native.html');
     expect(report.grafted).toEqual(['send_feedback']);
     expect(report.skipped).toContain('native-form');
+    expect(report.duplicates).toEqual([]);
+    expect(report.empty).toEqual([]);
   });
 });
 

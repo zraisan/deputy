@@ -1,4 +1,16 @@
+# secrets
 .env
+.env.local
+
+# dependencies and build output
 node_modules/
 dist/
+packages/extension/dist/
+
+# demo capture intermediates — the encoded video is what matters, not 700 jpegs
+bench/demo/frames*/
+.playwright-mcp/
+
+# scratch
 *.log
+/tmp/

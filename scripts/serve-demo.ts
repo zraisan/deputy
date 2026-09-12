@@ -1,8 +1,9 @@
-const files: Record<string, string> = { '/': 'bench/demo/booking.html', '/spa': 'bench/demo/spa.html', '/aria': 'bench/demo/aria-form.html' };
+const files: Record<string, string> = { '/': 'bench/demo/booking.html', '/spa': 'bench/demo/spa.html', '/aria': 'bench/demo/aria-form.html', '/copilot': 'bench/demo/copilotkit.html' };
 Bun.serve({
   port: 8877, hostname: '127.0.0.1',
   fetch: (req) => {
     const p = new URL(req.url).pathname;
+    if (p === '/api/copilotkit') return Response.json({ ok: true });
     return new Response(Bun.file(files[p] ?? files['/']!), { headers: { 'content-type': 'text/html' } });
   },
 });

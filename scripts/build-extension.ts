@@ -18,7 +18,7 @@ async function bundle(entrypoints: string[], format: 'esm' | 'iife') {
 
 const worker = await bundle(['packages/extension/src/sw.ts'], 'esm');
 const classic = await bundle(
-  ['packages/extension/src/content.ts', 'packages/extension/src/popup.ts'],
+  ['packages/extension/src/content.ts', 'packages/extension/src/popup.ts', 'packages/extension/src/mainworld.ts'],
   'iife',
 );
 

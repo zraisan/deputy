@@ -1,0 +1,68 @@
+/* Stage dressing for the demo recording. Motion only — nothing here changes behaviour. */
+
+@keyframes dRise   { from { opacity:0; transform:translateY(18px) } to { opacity:1; transform:none } }
+@keyframes dFadeIn { from { opacity:0 } to { opacity:1 } }
+@keyframes dSlideL { from { opacity:0; transform:translateX(22px) } to { opacity:1; transform:none } }
+@keyframes dScan   { from { transform:translateY(-16vh) } to { transform:translateY(112vh) } }
+@keyframes dPulse  { 0%{box-shadow:0 0 0 0 rgba(74,222,128,.6)} 70%{box-shadow:0 0 0 16px rgba(74,222,128,0)} 100%{box-shadow:0 0 0 0 rgba(74,222,128,0)} }
+@keyframes dBar    { from { width:0 } }
+@keyframes dGlow   { 0%,100%{opacity:.55} 50%{opacity:1} }
+
+/* ── the scan sweep ─────────────────────────────────────────── */
+#__dscan {
+  position:fixed; left:0; right:var(--hud-w,380px); height:150px; z-index:2147483640; pointer-events:none;
+  background:linear-gradient(180deg, rgba(74,222,128,0), rgba(74,222,128,.20) 50%, rgba(74,222,128,0));
+  border-top:1px solid rgba(74,222,128,.7);
+  animation:dScan 1.7s cubic-bezier(.4,0,.6,1) infinite;
+}
+.__dfound { outline:2px solid #4ade80 !important; outline-offset:3px; border-radius:6px; animation:dPulse 1.2s ease-out; }
+
+/* ── the HUD ────────────────────────────────────────────────── */
+#__dhud {
+  position:fixed; top:0; right:0; width:var(--hud-w,380px); height:100vh; z-index:2147483645;
+  box-sizing:border-box; padding:22px 22px 130px; overflow:hidden;
+  background:linear-gradient(165deg,#060b16 0%,#080f1f 55%,#050a14 100%);
+  border-left:1px solid rgba(59,130,246,.35);
+  box-shadow:-24px 0 70px rgba(0,0,0,.5);
+  color:#d9e7ff;
+  font:12.5px/1.55 ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+  animation:dFadeIn .5s ease both;
+}
+#__dhud .brand { display:flex; align-items:center; gap:10px; padding-bottom:14px; margin-bottom:16px;
+  border-bottom:1px solid rgba(59,130,246,.28); }
+#__dhud .dot { width:8px; height:8px; border-radius:50%; background:#4ade80;
+  box-shadow:0 0 12px #4ade80; animation:dGlow 2s ease-in-out infinite; }
+#__dhud .name { color:#4ade80; font-weight:700; font-size:12.5px; letter-spacing:.22em; }
+#__dhud .model { margin-left:auto; opacity:.4; font-size:10px; letter-spacing:.06em; }
+#__dhud .row { animation:dSlideL .5s cubic-bezier(.2,.7,.3,1) both; margin-bottom:13px; }
+#__dhud .step { font-weight:600; display:flex; gap:9px; align-items:baseline; }
+#__dhud .detail { opacity:.62; padding-left:19px; margin-top:2px; white-space:pre-wrap; word-break:break-word; }
+
+/* ── full-screen cards ──────────────────────────────────────── */
+#__dcard {
+  position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:2147483647;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  text-align:center; padding:6vw; box-sizing:border-box;
+  background:radial-gradient(90% 70% at 50% 38%, #0c1b36 0%, #050a14 70%, #03060d 100%);
+  color:#eef4ff;
+  font-family:"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  animation:dFadeIn .55s ease both;
+}
+#__dcard.out { animation:dFadeIn .45s ease reverse both; }
+/* Swapping content inside a card that is already up: fade the words, keep the backdrop. */
+#__dcard .stack { animation:dFadeIn .3s ease both; }
+#__dcard .stack.leaving { animation:dFadeIn .22s ease reverse both; }
+#__dcard .kicker { font:600 12.5px/1 ui-monospace,monospace; letter-spacing:.3em; opacity:.45; margin-bottom:26px; }
+#__dcard .big   { font-weight:700; letter-spacing:-.015em; line-height:1.18; max-width:17ch; }
+#__dcard .lead  { font-size:30px; line-height:1.45; max-width:20ch; font-weight:600; }
+#__dcard .sub   { font-size:17px; line-height:1.6; opacity:.62; max-width:52ch; margin-top:22px; font-weight:400; }
+#__dcard .mono  { font-family:ui-monospace,monospace; color:#4ade80; }
+#__dcard .line  { animation:dRise .62s cubic-bezier(.2,.7,.3,1) both; }
+
+/* ── the numbers ────────────────────────────────────────────── */
+#__dcard .bars { margin-top:34px; display:flex; flex-direction:column; gap:13px; }
+#__dcard .barrow { display:flex; align-items:center; gap:16px; }
+#__dcard .barlbl { width:190px; text-align:right; font-size:14.5px; opacity:.75; }
+#__dcard .bartrack { width:420px; height:24px; background:rgba(255,255,255,.06); border-radius:6px; overflow:hidden; }
+#__dcard .bar { height:100%; border-radius:6px; animation:dBar .95s cubic-bezier(.2,.8,.3,1) both; }
+#__dcard .barval { width:160px; text-align:left; font:600 14.5px/1 ui-monospace,monospace; }
