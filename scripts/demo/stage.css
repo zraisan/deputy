@@ -40,7 +40,9 @@
 
 /* ── full-screen cards ──────────────────────────────────────── */
 #__dcard {
-  position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:2147483647;
+  /* Anchor to all four edges rather than 100vw: vw includes the scrollbar, which
+     shifts everything a dozen pixels left of true centre. */
+  position:fixed; top:0; right:0; bottom:0; left:0; z-index:2147483647;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   text-align:center; padding:6vw; box-sizing:border-box;
   background:radial-gradient(90% 70% at 50% 38%, #0c1b36 0%, #050a14 70%, #03060d 100%);
@@ -52,10 +54,10 @@
 /* Swapping content inside a card that is already up: fade the words, keep the backdrop. */
 #__dcard .stack { animation:dFadeIn .3s ease both; }
 #__dcard .stack.leaving { animation:dFadeIn .22s ease reverse both; }
-#__dcard .kicker { font:600 12.5px/1 ui-monospace,monospace; letter-spacing:.3em; opacity:.45; margin-bottom:26px; }
-#__dcard .big   { font-weight:700; letter-spacing:-.015em; line-height:1.18; max-width:17ch; }
-#__dcard .lead  { font-size:30px; line-height:1.45; max-width:20ch; font-weight:600; }
-#__dcard .sub   { font-size:17px; line-height:1.6; opacity:.62; max-width:52ch; margin-top:22px; font-weight:400; }
+#__dcard .kicker { font:600 12.5px/1 ui-monospace,monospace; letter-spacing:.3em; opacity:.45; margin-bottom:26px; text-indent:.3em; }
+#__dcard .big   { font-weight:700; letter-spacing:-.015em; line-height:1.18; max-width:17ch; text-wrap:balance; }
+#__dcard .lead  { font-size:30px; line-height:1.45; max-width:26ch; font-weight:600; text-wrap:balance; }
+#__dcard .sub   { font-size:17px; line-height:1.62; opacity:.62; max-width:46ch; margin-top:22px; font-weight:400; text-wrap:balance; }
 #__dcard .mono  { font-family:ui-monospace,monospace; color:#4ade80; }
 #__dcard .line  { animation:dRise .62s cubic-bezier(.2,.7,.3,1) both; }
 
@@ -66,3 +68,13 @@
 #__dcard .bartrack { width:420px; height:24px; background:rgba(255,255,255,.06); border-radius:6px; overflow:hidden; }
 #__dcard .bar { height:100%; border-radius:6px; animation:dBar .95s cubic-bezier(.2,.8,.3,1) both; }
 #__dcard .barval { width:160px; text-align:left; font:600 14.5px/1 ui-monospace,monospace; }
+
+/* ── the comparison table ───────────────────────────────────── */
+#__dcard table.cmp { margin-top:28px; border-collapse:collapse; font-size:15px; }
+#__dcard table.cmp th { font:600 11px/1 ui-monospace,monospace; letter-spacing:.18em; opacity:.4;
+  padding:0 20px 14px; text-align:left; }
+#__dcard table.cmp td { padding:10px 20px; border-top:1px solid rgba(255,255,255,.07); text-align:left; }
+#__dcard table.cmp td.what { opacity:.8; }
+#__dcard table.cmp td.num  { font:600 14.5px/1 ui-monospace,monospace; }
+#__dcard table.cmp tr.me td { background:rgba(74,222,128,.07); }
+#__dcard table.cmp tr.me td.what { color:#4ade80; font-weight:600; }

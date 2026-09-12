@@ -7,10 +7,8 @@ node_modules/
 dist/
 packages/extension/dist/
 
-# demo capture intermediates — the encoded video is what matters, not 700 jpegs
-bench/demo/frames*/
-.playwright-mcp/
+# demo capture intermediates — the encoded video is the artifact, not the frames
+.demo-frames*/
 
 # scratch
 *.log
-/tmp/

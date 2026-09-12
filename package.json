@@ -1,5 +1,5 @@
 {
-  "name": "graft",
+  "name": "deputy",
   "private": true,
   "type": "module",
   "scripts": {
@@ -8,7 +8,8 @@
     "test": "bun test packages/*/test/",
     "test:browser": "bash scripts/kill-browsers.sh && bun test packages/*/test-browser/ --timeout 20000 ; bash scripts/kill-browsers.sh",
     "kill-browsers": "bash scripts/kill-browsers.sh",
-    "build:ext": "bun scripts/build-extension.ts"
+    "build:ext": "bun scripts/build-extension.ts",
+    "demo": "bun scripts/serve-demo.ts"
   },
   "dependencies": {
     "@a2a-js/sdk": "^1.1.0",
@@ -21,5 +22,12 @@
   },
   "devDependencies": {
     "@types/chrome": "^0.2.9"
+  },
+  "version": "0.1.0",
+  "description": "An agent that lives in your browser, so other agents never have to look at a web page.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zraisan/deputy.git"
   }
 }

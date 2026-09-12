@@ -7,9 +7,33 @@
  */
 import { rmSync, mkdirSync, writeFileSync } from 'node:fs';
 
+/**
+ * Two cuts from one script:
+ *   bun scripts/record-demo.ts            → the public demo, on examples/aria-form.html
+ *   bun scripts/record-demo.ts submission → the same run on whatever page is open
+ *
+ * The public cut uses an example page anyone can serve with `bun run demo`, so a
+ * reader can reproduce exactly what the recording shows.
+ */
+const SUBMISSION = process.argv[2] === 'submission';
+const TARGET = SUBMISSION ? 'aitinkerers' : '8877';
+const SETUP = SUBMISSION
+  ? { lead: `This hackathon's own<br>submission form.`,
+      sub: `25 inputs. Not one of them inside a <span class="mono">&lt;form&gt;</span><br>— so the WebMCP standard has nothing to attach to.` }
+  : { lead: `A page built the way<br>Google Forms builds one.`,
+      sub: `No <span class="mono">&lt;form&gt;</span> element. Its choices are <span class="mono">&lt;div role="radio"&gt;</span><br>— widgets, not form controls.` };
+const BUILT = SUBMISSION
+  ? `booleans for the sponsor checkboxes · <span class="mono">uri</span> for the links · three required`
+  : `an <span class="mono">enum</span> from the radio group · booleans from the checkboxes · text from the contenteditable`;
+const FILL = SUBMISSION
+  ? { project_name: 'Deputy', brief_description: 'filled by Deputy', affiliated_products: true, affiliated_products_3: true, affiliated_products_4: true }
+  : { your_name: 'Ada Lovelace',
+      tell_us_about_your_project: 'Deputy turns any page into a typed tool an agent can call.',
+      primary_language: 'TypeScript', openrouter: true, claude: true };
+
 const CDP = 'http://127.0.0.1:9555';
 const MCP = 'http://127.0.0.1:7331/mcp';
-const FRAMES = 'bench/demo/frames';
+const FRAMES = '.demo-frames';
 const HUD_W = 380;
 const META = {
   'io.modelcontextprotocol/protocolVersion': '2026-07-28',
@@ -28,8 +52,8 @@ async function mcp(name: string, args: Record<string, unknown> = {}) {
 }
 
 const targets = await (await fetch(`${CDP}/json`)).json();
-const page = targets.find((t: any) => t.type === 'page' && t.url.includes('aitinkerers'));
-if (!page) throw new Error('the submission page is not open in the Deputy browser');
+const page = targets.find((t: any) => t.type === 'page' && t.url.includes(TARGET));
+if (!page) throw new Error(`no page matching "${TARGET}" is open in the Deputy browser`);
 
 const ws = new WebSocket(page.webSocketDebuggerUrl);
 let id = 0; const waiters = new Map<number, (m: any) => void>(); let frame = 0;
@@ -114,10 +138,11 @@ const scan = (on: boolean) => js(on
 
 // clear the form so the fill is visible, and start at the top
 await js(`(() => {
-  for (const n of ['project_name','brief_description']) {
-    const e=document.querySelector('[name='+n+']');
-    if(e){ e.value=''; e.dispatchEvent(new Event('input',{bubbles:true})); }
+  for (const e of document.querySelectorAll('input[type=text],input:not([type]),textarea')) {
+    e.value=''; e.dispatchEvent(new Event('input',{bubbles:true}));
   }
+  for (const e of document.querySelectorAll('[contenteditable]')) e.textContent='';
+  for (const e of document.querySelectorAll('[role=radio],[role=checkbox]')) e.setAttribute('aria-checked','false');
   window.scrollTo({top:0}); return 1 })()`);
 await js(`(() => { const c=document.createElement('div'); c.id='__dcard'; document.body.appendChild(c); return 1 })()`);
 await hold(700);
@@ -140,17 +165,16 @@ console.log('recording…');
 await card([
   `<div class="big mono" style="font-size:74px;text-shadow:0 0 60px rgba(74,222,128,.4)">DEPUTY</div>`,
   `<div class="lead" style="margin-top:26px;max-width:26ch">Your agent doesn't browse.<br>It deputizes.</div>`,
-  `<div class="sub">An agent that lives in your browser, so other agents never have to look at a web page.
-     Works with any MCP client.</div>`,
+  `<div class="sub">An agent that lives in your browser, so other agents<br>
+     never have to look at a web page. Works with any MCP client.</div>`,
 ], 260);
 await hold(4200);
 
 // 2 ── the page
 await card([
   `<div class="kicker">THE PAGE IN FRONT OF US</div>`,
-  `<div class="lead" style="max-width:24ch">This hackathon's own<br>submission form.</div>`,
-  `<div class="sub">25 inputs. Not one of them inside a <span class="mono">&lt;form&gt;</span> —
-     so there is nothing for the WebMCP standard to attach to.</div>`,
+  `<div class="lead" style="max-width:24ch">${SETUP.lead}</div>`,
+  `<div class="sub">${SETUP.sub}</div>`,
 ], 200);
 await hold(4300);
 await closeCard();
@@ -190,8 +214,8 @@ await hold(5200);
 
 await card([
   `<div class="kicker">WHAT JUST HAPPENED</div>`,
-  `<div class="lead">Deputy built a <span class="mono">typed API</span><br>out of a page that had none.</div>`,
-  `<div class="sub">${nFields} fields · booleans for the sponsor checkboxes · <span class="mono">uri</span> for the links · 3 required</div>`,
+  `<div class="lead">Deputy built a <span class="mono" style="white-space:nowrap">typed API</span><br>out of a page that had none.</div>`,
+  `<div class="sub">${nFields} fields · ${BUILT}</div>`,
 ], 200);
 await hold(4300);
 await closeCard();
@@ -204,25 +228,7 @@ await hold(1800);
 
 // 5 ── the fill
 await hud('filling the form');
-await mcp('browser_invoke', {
-  tool: toolName,
-  args: {
-    project_name: 'Deputy',
-    brief_description:
-      "Deputy is an agent that lives in your browser so other agents never have to look at a web page. " +
-      "It retrofits the W3C WebMCP standard onto sites that never implemented it, after which Chromium " +
-      "itself generates the JSON Schema and executes the submission. Pages with no <form> element — this " +
-      "one included — get a tool synthesized from their controls, ARIA widgets and all. Measured against " +
-      "Playwright MCP on the same task: 216,888 tokens and $0.2730 down to 133,366 and $0.1861. " +
-      "Works with any MCP client. CopilotKit v2 publishes its frontend tools to the same " +
-      "document.modelContext registry Deputy grafts into, so the two interoperate with no adapter: " +
-      "a CopilotKit app's tools become callable by any agent, and Deputy's grafted tools become " +
-      "available to a CopilotKit copilot. Deputy's own model runs on OpenRouter.",
-    affiliated_products: true,    // AI Tinkerers
-    affiliated_products_3: true,  // CopilotKit — Deputy shares its WebMCP registry
-    affiliated_products_4: true,  // OpenRouter — Deputy's own model runs through it
-  },
-});
+await mcp('browser_invoke', { tool: toolName, args: FILL });
 await hold(3200);
 await hud('stopped at the submit button', 'nothing was submitted — a human presses it', 'win');
 await hold(3600);
@@ -248,7 +254,29 @@ await card([
 ], 260);
 await hold(6600);
 
-// 7 ── close
+
+// 7 ── how this compares
+const row = (what: string, perPage: string, toFill: string, me = false) => `
+  <tr class="${me ? 'me' : ''}">
+    <td class="what">${what}</td>
+    <td class="num" style="color:${me ? '#4ade80' : '#f0a5a5'}">${perPage}</td>
+    <td class="num" style="color:${me ? '#4ade80' : '#c9d6ee'};opacity:${me ? 1 : .75}">${toFill}</td>
+  </tr>`;
+await card([
+  `<div class="kicker">HOW THIS COMPARES</div>`,
+  `<table class="cmp">
+     <tr><th>what the agent receives</th><th>per page</th><th>to fill a 7-field form</th></tr>
+     ${row('a screenshot', '57,134 tok', 'one look per turn')}
+     ${row('an accessibility snapshot', '14,170 tok', '9 turns, re-sent each one')}
+     ${row('element refs', '~158 tok', '1 snapshot + 7 actions')}
+     ${row('Deputy — a typed schema', '611 tok', 'one call', true)}
+   </table>`,
+  `<div class="sub" style="margin-top:26px;max-width:56ch">Ref-based tools send less per page.
+     Deputy sends fewer turns — and a turn costs the whole context, not just the payload.</div>`,
+], 240);
+await hold(7200);
+
+// 8 ── close
 await card([
   `<div class="big" style="font-size:44px;max-width:22ch">We taught a website to describe itself to an agent —
      <span class="mono">without its cooperation</span>.</div>`,

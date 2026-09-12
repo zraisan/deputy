@@ -1,4 +1,4 @@
-const files: Record<string, string> = { '/': 'bench/demo/booking.html', '/spa': 'bench/demo/spa.html', '/aria': 'bench/demo/aria-form.html', '/copilot': 'bench/demo/copilotkit.html' };
+const files: Record<string, string> = { '/': 'examples/booking.html', '/spa': 'examples/spa.html', '/aria': 'examples/aria-form.html', '/copilot': 'examples/copilotkit.html' };
 Bun.serve({
   port: 8877, hostname: '127.0.0.1',
   fetch: (req) => {

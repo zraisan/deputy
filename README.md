@@ -2,11 +2,12 @@
 
 **We taught a website to describe itself to an agent — without its cooperation.**
 
-![Deputy synthesizing a typed tool from a page with no <form>, then filling it](bench/demo/deputy-demo.gif)
+![Deputy synthesizing a typed tool from a page with no form element, then filling it](docs/deputy-demo.gif)
 
-*Deputy on a real submission page: 25 inputs, none inside a `<form>`. It synthesizes a 24-field typed
-tool, hands the schema to an agent, and fills the form from one call. Full video:
-[`bench/demo/deputy-demo.mp4`](bench/demo/deputy-demo.mp4).*
+*A page built the way Google Forms builds one — no `<form>`, its choices are `<div role="radio">`.
+Deputy synthesizes a typed tool from it, hands the schema to an agent, and fills it from one call.
+Reproduce it with `bun run demo` and `bun run dev`; full video: [`docs/deputy-demo.mp4`](docs/deputy-demo.mp4).*
+
 
 Deputy is an agent that lives in your browser. Any MCP client — Claude Code, Cursor, your own agent —
 stops driving the browser itself and asks Deputy instead. It hands back a **typed API** for
@@ -111,7 +112,7 @@ Per observation, on the same Wikipedia page:
 | **Deputy's typed schemas** | **115** |
 
 The baseline was given the accessibility-snapshot path, not just screenshots, so **the comparison is
-deliberately conservative**. Method and both tasks: [`bench/RESULTS.md`](bench/RESULTS.md).
+deliberately conservative**. Method and both tasks: [`docs/measurements.md`](docs/measurements.md).
 
 ### The finding worth reading twice
 
@@ -156,8 +157,9 @@ claude mcp add --transport http deputy http://127.0.0.1:7331/mcp
 ```
 
 ```bash
-bun test              # 85 unit tests, never launches a browser
+bun test              # 88 unit tests, never launches a browser
 bun run test:browser  # 10 integration tests against real Chromium
+bun run demo          # serve the example pages used in the video
 bun scripts/sweep.ts  # point Deputy at 8 real sites and see what it makes of each
 ```
 
@@ -208,4 +210,8 @@ MDN's search lives in a modal, so Deputy offers the button, not the field.
 Every bug that mattered was found by running it. `executeTool` in Chromium 152 wants its arguments as
 a JSON *string*; passing an object stringifies to `[object Object]` and fails. That cost one full run
 — 19 turns, 452,165 tokens — of Claude patiently working around a broken tool. The rest are in
-[`bench/RESULTS.md`](bench/RESULTS.md).
+[`docs/measurements.md`](docs/measurements.md).
+
+## License
+
+MIT — see [LICENSE](LICENSE).

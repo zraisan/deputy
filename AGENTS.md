@@ -55,7 +55,7 @@ the agent's tool list churns on every SPA re-render.
 
 **The page never crosses the wire to the calling agent.** No screenshots, no DOM dumps, no
 accessibility trees — goals in, structured artifacts out. This invariant is the entire result in
-`bench/RESULTS.md`; breaking it makes the project pointless.
+`docs/measurements.md`; breaking it makes the project pointless.
 
 **Send complete context, not clever compression.** Measured three times: withholding schemas to keep
 payloads small made tasks *more* expensive, because the agent had to probe for what we withheld.

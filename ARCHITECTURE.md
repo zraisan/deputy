@@ -180,7 +180,7 @@ if delegation stops being cheap, a test fails.
 | C | Graft retrofit engine | ✅ 10 integration tests + live on real Wikipedia |
 | D | daemon, MCP face, planner | ✅ 5 tools live; Qwen via OpenRouter |
 | G | consent, failure paths | ✅ bounded consent, HMAC'd state, tab-close rejects pending calls |
-| H | measurement, README | ✅ `bench/RESULTS.md` |
+| H | measurement, README | ✅ `docs/measurements.md` |
 | E | sitemap / multi-page navigation | ❌ designed (§8), not built |
 | F | A2A protocol face | ❌ not built — task vocabulary is A2A's, wire format is not |
 
@@ -360,7 +360,7 @@ Measured on a Google-Forms-shaped page before the fix: **1 field out of 4**. Aft
 widgets alongside real controls: **5 of 5**, verified from the live DOM —
 
 ```
-text input     : "Zain Raisan"
+text input     : "Ada Lovelace"
 contenteditable: "Deputy turns any page into a typed tool."
 radio checked  : TypeScript=true, Python=false, Go=false     ← exclusive, correct
 checkboxes     : OpenRouter=true, Claude=true
