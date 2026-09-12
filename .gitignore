@@ -12,3 +12,7 @@ packages/extension/dist/
 
 # scratch
 *.log
+
+# landing page build inputs
+site/node_modules/
+site/dist/
