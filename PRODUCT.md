@@ -67,6 +67,11 @@ typed API: a seven-field form is one validated call, not seven targeted actions.
   a11y snapshot 14,170 tokens; Deputy on a form page 611 tokens; typed schemas alone 115.
 - `docs/deputy-demo.mp4` (1:00), `docs/deputy-still.png`, `docs/youtube-thumbnail.png`.
 - Tests: unit and browser integration suites in the repo.
+- The demo video's on-screen figures (scripts/record-demo.ts): 10 controls, a 10-field tool,
+  758 tokens of schema sent; 216,888 vs 133,366 tokens, $0.2730 vs $0.1861, 9 vs 6 turns,
+  26.1 s vs 17.2 s; "Filling one form": screenshot 57,134 tok, accessibility snapshot 9 turns /
+  14,170 tok, element refs 1 snapshot + 7 actions (~158 tok per page), Deputy 1 call / 611 tok once.
+  Any surface may add figures, but must never contradict or reframe these.
 - Absent, never to be fabricated: users, customers, testimonials, press, pricing, Web Store listing.
 
 ## Product Principles

@@ -21,3 +21,16 @@ export const PauseIcon = (p: SVGProps<SVGSVGElement>) => (<svg {...base(p)}><pat
 export const WarnIcon = (p: SVGProps<SVGSVGElement>) => (<svg {...base(p)}><path d="M8 1.9 1.4 13.5h13.2z" /><path d="M8 6.5v3m0 2.1v.01" /></svg>);
 export const PuzzleIcon = (p: SVGProps<SVGSVGElement>) => (<svg {...base(p)}><path d="M3 5.5h2.25a1.5 1.5 0 1 1 3 0H10.5v2.25a1.5 1.5 0 1 1 0 3V13H3z" /></svg>);
 export const ArrowIcon = (p: SVGProps<SVGSVGElement>) => (<svg {...base(p)}><path d="M4.5 11.5l7-7M5.5 4.5h6v6" /></svg>);
+
+/** The Deputy mark: a deputy's star with an element's angle brackets at its centre. Same drawing as favicon.svg. */
+export const BadgeMark = (p: SVGProps<SVGSVGElement>) => (
+  <svg viewBox="0 0 64 64" width={20} height={20} aria-hidden {...p}>
+    <path fill="#4ade80" d="M32 9.5 38.1 21.4 51.5 20.8 44.3 32 51.5 43.2 38.1 42.6 32 54.5 25.9 42.6 12.5 43.2 19.7 32 12.5 20.8 25.9 21.4Z" />
+    <g fill="#4ade80">
+      <circle cx="32" cy="9.5" r="4" /><circle cx="51.5" cy="20.8" r="4" /><circle cx="51.5" cy="43.2" r="4" />
+      <circle cx="32" cy="54.5" r="4" /><circle cx="12.5" cy="43.2" r="4" /><circle cx="12.5" cy="20.8" r="4" />
+    </g>
+    <circle cx="32" cy="32" r="9" fill="var(--color-ground)" />
+    <path d="M28.6 28.4 25 32l3.6 3.6M35.4 28.4 39 32l-3.6 3.6" fill="none" stroke="#4ade80" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);

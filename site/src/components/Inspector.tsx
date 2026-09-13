@@ -57,11 +57,9 @@ const SCHEMA_AT = (i: number) => 64 + i * 2.5;
 function K({ children }: { children: ReactNode }) { return <span className="text-attr">"{children}"</span>; }
 function S({ children }: { children: ReactNode }) { return <span className="text-value">"{children}"</span>; }
 function N({ children }: { children: ReactNode }) { return <span className="text-num">{children}</span>; }
-
 function Tag({ children }: { children: ReactNode }) { return <span className="text-tag">{children}</span>; }
 
 function Attrs({ text }: { text: string }) {
-  // ' type="number" min="1"' → colored pairs
   const parts = [...text.matchAll(/\s([\w-]+)(?:="([^"]*)")?/g)];
   return (
     <>
@@ -79,6 +77,9 @@ function Graft({ name, value }: { name: string; value: string }) {
     </span>
   );
 }
+
+// Every pane line is exactly 20px, so a followed pane never shows half a line under its header.
+const line = 'leading-5';
 
 function usePrefersReducedMotion() {
   const [reduced] = useState(() =>
@@ -116,9 +117,14 @@ export default function Inspector() {
     return () => window.clearInterval(id);
   }, [playing]);
 
-  // Follow the newest line inside each pane while the replay runs (never the page).
+  // While running, follow the newest line inside each pane (never the page). Once it
+  // settles, both panes return to the top, where the form's own graft and the tool's name are.
   useEffect(() => {
-    if (!playing) return;
+    const top = () => {
+      if (tree.current) tree.current.scrollTop = 0;
+      if (schema.current) schema.current.scrollTop = 0;
+    };
+    if (!playing) { top(); return; }
     if (tree.current && t >= 14 && t < 62) tree.current.scrollTop = tree.current.scrollHeight;
     if (schema.current && t >= 62) schema.current.scrollTop = schema.current.scrollHeight;
   }, [t, playing]);
@@ -127,7 +133,7 @@ export default function Inspector() {
   const done = t >= END;
   const shown = (at: number) => t >= at;
   const grafted = [0, 1, ...FIELDS.map((_, i) => i + 2)].filter((i) => shown(GRAFT_AT(i))).length;
-  const filling = FIELDS.findIndex((_, i) => !shown(FILL_AT(i)) ) - 1;
+  const filling = FIELDS.findIndex((_, i) => !shown(FILL_AT(i))) - 1;
   const waiting = step === 4;
 
   const jump = (i: number) => {
@@ -151,58 +157,57 @@ export default function Inspector() {
         className="overflow-hidden rounded-xl border border-line bg-panel shadow-[0_30px_80px_-20px_rgb(0_0_0/0.7),0_2px_0_0_rgb(255_255_255/0.03)_inset]"
       >
         {/* tab strip */}
-        <div className="flex h-10 items-end gap-2 bg-[#0d0e10] px-3">
-          <div className="flex h-8 min-w-0 max-w-[260px] items-center gap-2 rounded-t-lg bg-raised px-3 text-[12px] text-ink">
+        <div aria-hidden className="flex h-8 items-end gap-2 bg-[#0d0e10] px-3 select-none">
+          <div className="flex h-[26px] min-w-0 max-w-[260px] items-center gap-2 rounded-t-lg bg-raised px-3 text-[12px] text-ink">
             <span className="grid h-3.5 w-3.5 shrink-0 place-items-center rounded-sm bg-[#11aa66] text-[8px] font-bold text-white">A</span>
             <span className="truncate">Acme Travel — Reservations</span>
           </div>
         </div>
         {/* toolbar + omnibox */}
-        <div className="flex items-center gap-1.5 border-b border-line bg-raised px-2.5 py-1.5 text-dim">
+        <div aria-hidden className="flex items-center gap-1.5 border-b border-line bg-raised px-2.5 py-1 text-dim select-none">
           <BackIcon /><ForwardIcon className="opacity-50" /><ReloadIcon />
           <div className="mx-1.5 flex h-7 min-w-0 flex-1 items-center rounded-full bg-[#121316] px-3 font-mono text-[12px] text-muted">
             <span className="truncate"><span className="text-dim">https://</span>{HOST}/reserve</span>
           </div>
-          <span
-            className={`grid h-7 w-7 place-items-center rounded-full transition-colors duration-500 ${step >= 1 ? 'text-accent' : 'text-dim'}`}
-            title="Deputy extension"
-          >
+          <span className={`grid h-7 w-7 place-items-center rounded-full transition-colors duration-500 ${step >= 1 ? 'text-accent' : 'text-dim'}`}>
             <PuzzleIcon />
           </span>
         </div>
 
         {/* the site itself — light, because the site is */}
-        <div className="bg-[#fbfaf7] px-4 py-4 text-[#1d1d1b] sm:px-8 sm:py-5">
-          <div className="text-[13px] font-semibold tracking-tight text-[#11794b]">Acme Travel</div>
-          <div className="mt-0.5 text-[17px] font-semibold tracking-tight">Book a table</div>
-          <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2.5 md:grid-cols-4">
+        <div className="bg-[#fbfaf7] px-4 py-3 text-[#1d1d1b] sm:px-8">
+          <div className="flex items-baseline justify-between gap-4">
+            <div className="text-[16px] font-semibold tracking-tight">Book a table</div>
+            <div className="text-[12.5px] font-semibold tracking-tight text-[#11794b]">Acme Travel</div>
+          </div>
+          <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-2 md:grid-cols-4">
             {FIELDS.map((f, i) => {
               const filled = shown(FILL_AT(i));
               const typing = playing && i === filling + 1 && step === 3 && !filled;
               return (
-                <label key={f.name} className={`block min-w-0 ${f.wide ? 'col-span-2' : ''}`}>
+                <div key={f.name} className={`min-w-0 ${f.wide ? 'col-span-2' : ''}`}>
                   <span className="block truncate text-[11px] font-semibold text-[#3b3b38]">{f.label}</span>
                   <span
-                    className={`mt-1 flex h-8 items-center truncate rounded-md border bg-white px-2 text-[12.5px] transition-colors duration-300 ${
-                      filled ? 'border-[#9bd8b6] text-[#1d1d1b]' : 'border-[#d4d2cc] text-[#8a8983]'
+                    className={`mt-0.5 flex h-7 items-center truncate rounded-md border bg-white px-2 text-[12.5px] transition-colors duration-300 ${
+                      filled ? 'border-[#9bd8b6] text-[#1d1d1b]' : 'border-[#d4d2cc] text-[#6f6e69]'
                     } ${typing ? 'caret' : ''}`}
                   >
                     {filled ? f.value : (f.empty ?? '')}
                   </span>
-                </label>
+                </div>
               );
             })}
           </div>
-          <div className="relative mt-4 flex flex-wrap items-center gap-3">
+          <div className="mt-3 flex flex-wrap items-center gap-3">
             <span
-              className={`rounded-md bg-[#11aa66] px-4 py-1.5 text-[13px] font-semibold text-white transition-[outline-color,outline-offset] duration-300 ${
+              className={`rounded-md bg-[#11aa66] px-4 py-1 text-[13px] font-semibold text-white transition-[outline-color,outline-offset] duration-300 ${
                 waiting ? 'outline-2 outline-offset-2 outline-[#1a73e8]' : 'outline-2 outline-offset-0 outline-transparent'
               }`}
             >
               Reserve table
             </span>
             <span
-              className={`rounded-md bg-[#2b2410] px-2.5 py-1 text-[12px] text-wait transition-opacity duration-500 ${waiting ? 'opacity-100' : 'opacity-0'}`}
+              className={`rounded-md bg-[#2b2410] px-2.5 py-0.5 text-[12px] text-wait transition-opacity duration-500 ${waiting ? 'opacity-100' : 'opacity-0'}`}
               aria-hidden={!waiting}
             >
               Chromium focused the button. Nothing is sent until a person presses it.
@@ -213,10 +218,8 @@ export default function Inspector() {
         {/* docked DevTools */}
         <div className="border-t border-line bg-panel">
           <div className="flex h-9 items-center gap-4 border-b border-line px-3 text-[12px] text-dim">
-            <span className="flex h-full items-center border-b-2 border-accent text-ink">Elements</span>
-            <span className="hidden h-full items-center sm:flex">Console</span>
-            <span className="hidden h-full items-center sm:flex">Network</span>
-            <span className="hidden h-full items-center md:flex">Application</span>
+            <span aria-hidden className="flex h-full items-center border-b-2 border-accent text-ink select-none">Elements</span>
+            <span aria-hidden className="hidden h-full cursor-default items-center select-none sm:flex">Console</span>
             <span className="ml-auto flex min-w-0 items-center gap-2 font-mono text-[11.5px]">
               <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${waiting ? 'bg-wait' : 'bg-accent'}`} />
               <span className="truncate"><span className="text-muted">deputy</span> · <span className={waiting ? 'text-wait' : 'text-ink'}>{statusText}</span></span>
@@ -225,34 +228,34 @@ export default function Inspector() {
 
           <div className="grid grid-cols-1 md:grid-cols-[1.15fr_1fr]">
             {/* Elements tree */}
-            <div ref={tree} className="h-[228px] overflow-auto border-line px-3 py-2.5 font-mono text-[12px] leading-[1.65] md:h-[268px] md:border-r">
-              <div className="whitespace-pre-wrap break-words pl-4 -indent-4">
+            <div ref={tree} className={`h-[220px] overflow-auto border-line px-3 py-2.5 font-mono text-[12px] ${line} md:h-[180px] md:border-r md:py-0`}>
+              <div className="whitespace-pre-wrap break-words pl-4 -indent-4 md:whitespace-pre md:break-normal md:pl-0 md:indent-0">
                 <Tag>&lt;form</Tag><Attrs text={` id="booking" action="/reserve" method="post"`} />
                 {shown(GRAFT_AT(0)) && <Graft name="toolname" value="book_a_table" />}
                 {shown(GRAFT_AT(1)) && <Graft name="tooldescription" value={DESCRIPTION} />}
                 <Tag>&gt;</Tag>
               </div>
               {FIELDS.map((f, i) => (
-                <div key={f.name} className="whitespace-pre-wrap break-words pl-8 -indent-4">
+                <div key={f.name} className="whitespace-pre-wrap break-words pl-8 -indent-4 md:whitespace-pre md:break-normal md:pl-4 md:indent-0">
                   <Tag>&lt;{f.tag}</Tag><Attrs text={` name="${f.name}"${f.attrs}`} />
                   {shown(GRAFT_AT(i + 2)) && <Graft name="toolparamdescription" value={f.label} />}
                   <Tag>&gt;</Tag>{f.tag !== 'input' && <><span className="text-dim">…</span><Tag>&lt;/{f.tag}&gt;</Tag></>}
                 </div>
               ))}
-              <div className="pl-4">
+              <div className="whitespace-pre pl-4">
                 <Tag>&lt;button</Tag><Attrs text=' type="submit"' /><Tag>&gt;</Tag>Reserve table<Tag>&lt;/button&gt;</Tag>
               </div>
               <div><Tag>&lt;/form&gt;</Tag></div>
             </div>
 
             {/* schema pane */}
-            <div className="flex h-[228px] min-w-0 flex-col border-t border-line md:h-[268px] md:border-t-0">
+            <div className="flex h-[220px] min-w-0 flex-col border-t border-line md:h-[180px] md:border-t-0">
               <div className="flex h-8 shrink-0 items-center gap-4 border-b border-line-soft px-3 text-[12px] text-dim">
                 <span className="text-ink">Tool schema</span>
                 <span className="ml-auto truncate font-mono text-[11px]">generated by Chromium</span>
               </div>
-              <div ref={schema} className="min-h-0 flex-1 overflow-auto px-3 py-2 font-mono text-[12px] leading-[1.65] text-muted">
-                {step < 2 && !shown(SCHEMA_AT(0)) ? (
+              <div ref={schema} className={`min-h-0 flex-1 overflow-auto px-3 font-mono text-[12px] ${line} text-muted`}>
+                {!shown(SCHEMA_AT(0)) ? (
                   <div className="text-dim">No tools registered on this page.</div>
                 ) : (
                   SCHEMA.map((l, i) => shown(SCHEMA_AT(i)) && (
@@ -264,7 +267,7 @@ export default function Inspector() {
           </div>
 
           {/* console drawer: the one call the agent makes */}
-          <div className="min-h-[58px] border-t border-line bg-[#161719] px-3 py-2 font-mono text-[12px] leading-[1.6]">
+          <div className={`min-h-[56px] border-t border-line bg-[#161719] px-3 py-2 font-mono text-[12px] ${line}`}>
             {step >= 3 ? (
               <div className="whitespace-pre-wrap break-words">
                 <span className="text-accent">←</span> <span className="text-ink">browser_invoke</span> <span className="text-value">"book_a_table"</span>{' '}
@@ -282,7 +285,7 @@ export default function Inspector() {
           </div>
 
           {/* step bar */}
-          <div className="flex items-center gap-1 overflow-x-auto border-t border-line px-2 py-1.5">
+          <div className="flex items-center gap-1 border-t border-line px-2 py-1">
             <button
               type="button"
               onClick={toggle}
@@ -291,19 +294,21 @@ export default function Inspector() {
             >
               {done ? <ReloadIcon /> : playing ? <PauseIcon /> : <PlayIcon />}
             </button>
-            <ol className="flex min-w-0 items-center gap-1">
+            <span className={`min-w-0 flex-1 truncate px-1 text-[12.5px] sm:hidden ${waiting ? 'text-wait' : 'text-ink'}`}>{STEPS[step]!.label}</span>
+            <ol className="flex shrink-0 items-center gap-0.5 sm:gap-1">
               {STEPS.map((s, i) => (
-                <li key={s.label} className="shrink-0">
+                <li key={s.label}>
                   <button
                     type="button"
                     onClick={() => jump(i)}
+                    aria-label={s.label}
                     aria-current={i === step ? 'step' : undefined}
-                    className={`flex h-8 items-center gap-2 rounded-md px-2.5 text-[12.5px] transition-colors ${
+                    className={`flex h-8 min-w-8 items-center justify-center gap-2 rounded-md px-2 text-[12.5px] transition-colors sm:px-2.5 ${
                       i === step ? 'bg-raised text-ink' : i < step ? 'text-muted hover:bg-raised' : 'text-dim hover:bg-raised hover:text-muted'
                     }`}
                   >
                     <span className={`font-mono text-[11px] tnum ${i === step ? (i === 4 ? 'text-wait' : 'text-accent') : ''}`}>{i + 1}</span>
-                    {s.label}
+                    <span className="hidden sm:inline">{s.label}</span>
                   </button>
                 </li>
               ))}

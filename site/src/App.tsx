@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import Inspector from '@/components/Inspector';
 import { Code } from '@/components/Code';
-import { ArrowIcon, GitHubIcon, InspectIcon, WarnIcon } from '@/components/Icons';
+import { ArrowIcon, BadgeMark, GitHubIcon, WarnIcon } from '@/components/Icons';
 
 const GH = 'https://github.com/zraisan/deputy';
 const MEASUREMENTS = `${GH}/blob/master/docs/measurements.md`;
@@ -55,18 +55,17 @@ function Source({ href, children }: { href: string; children: ReactNode }) {
 /* ── numbers ─────────────────────────────────────────────── */
 
 const RUNS = [
-  { name: 'Claude + Playwright MCP', turns: 9, tokens: 216888, cost: '$0.2730', time: '26.1 s', deputy: false },
-  { name: 'Claude + Deputy', turns: 6, tokens: 133366, cost: '$0.1861', time: '17.2 s', deputy: true },
+  { name: 'Claude + Playwright MCP', short: 'Playwright MCP', turns: 9, tokens: 216888, cost: '$0.2730', time: '26.1 s', deputy: false },
+  { name: 'Claude + Deputy', short: 'Deputy', turns: 6, tokens: 133366, cost: '$0.1861', time: '17.2 s', deputy: true },
 ];
 
-const WIRE = [
-  { what: 'Full accessibility tree', tokens: 215495, note: '', deputy: false },
-  { what: 'Raw HTML', tokens: 62184, note: '', deputy: false },
-  { what: 'Screenshot, 1440×900 PNG', tokens: 57134, note: '', deputy: false },
-  { what: 'Trimmed a11y snapshot', tokens: 14170, note: 'what Playwright MCP sends', deputy: false },
-  { what: 'Deputy on Wikipedia', tokens: 3545, note: '5 tools and 25 actions', deputy: true },
-  { what: 'Deputy on the booking form', tokens: 611, note: 'a form page: schemas, values, actions', deputy: true },
-  { what: 'An answer from browser_ask', tokens: 40, note: 'approximate', deputy: true, approx: true },
+// Row for row, the "Filling one form" card at the end of docs/deputy-demo.mp4.
+// Extra figures are fine elsewhere; these must never be framed differently from the video.
+const ONE_FORM = [
+  { what: 'A screenshot', turns: 'one look per field', rereads: '57,134 tok', deputy: false },
+  { what: 'An accessibility snapshot', turns: '9', rereads: '14,170 tok', deputy: false },
+  { what: 'Element refs', turns: '1 snapshot + 7 actions', rereads: 'the whole context', deputy: false },
+  { what: 'Deputy, a typed schema', turns: '1 call', rereads: '611 tok, once', deputy: true },
 ];
 
 const fmt = (n: number) => n.toLocaleString('en-US');
@@ -98,28 +97,28 @@ function Numbers() {
 
       <Pane
         className="mt-12"
-        tabs={<><ActiveTab>Network</ActiveTab><span className="hidden sm:inline">Timing</span></>}
+        tabs={<ActiveTab>Network</ActiveTab>}
         aside="booking form · 7 fields"
       >
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-[13.5px] tnum">
             <thead className="border-b border-line-soft">
               <tr>
-                <th className={th}>Name</th><th className={th}>Status</th><th className={`${th} text-right`}>Turns</th>
+                <th className={th}>Name</th><th className={`${th} hidden sm:table-cell`}>Status</th><th className={`${th} text-right`}>Turns</th>
                 <th className={`${th} text-right`}>Claude tokens</th><th className={`${th} text-right`}>Cost</th>
-                <th className={`${th} text-right`}>Time</th><th className={`${th} w-[34%]`}>Tokens</th>
+                <th className={`${th} text-right`}>Time</th><th className={`${th} hidden w-[34%] sm:table-cell`}>Tokens</th>
               </tr>
             </thead>
             <tbody>
               {RUNS.map((r) => (
                 <tr key={r.name} className={`border-b border-line-soft last:border-0 ${r.deputy ? 'bg-accent/[0.05]' : ''}`}>
-                  <td className={`${td} ${r.deputy ? 'text-ink font-medium' : 'text-muted'}`}>{r.name}</td>
-                  <td className={`${td} font-mono text-[12.5px] text-muted`}>succeeded</td>
+                  <td className={`${td} ${r.deputy ? 'text-ink font-medium' : 'text-muted'}`}><span className="sm:hidden">{r.short}</span><span className="hidden sm:inline">{r.name}</span></td>
+                  <td className={`${td} hidden font-mono text-[12.5px] text-muted sm:table-cell`}>succeeded</td>
                   <td className={`${td} text-right font-mono`}>{r.turns}</td>
                   <td className={`${td} text-right font-mono ${r.deputy ? 'text-accent' : ''}`}>{fmt(r.tokens)}</td>
                   <td className={`${td} text-right font-mono`}>{r.cost}</td>
                   <td className={`${td} text-right font-mono`}>{r.time}</td>
-                  <td className={td}><Bar value={r.tokens} max={RUNS[0]!.tokens} deputy={r.deputy} /></td>
+                  <td className={`${td} hidden sm:table-cell`}><Bar value={r.tokens} max={RUNS[0]!.tokens} deputy={r.deputy} /></td>
                 </tr>
               ))}
             </tbody>
@@ -132,28 +131,30 @@ function Numbers() {
         </div>
       </Pane>
 
-      <div className="mt-20 grid gap-x-16 gap-y-8 lg:grid-cols-12">
+      <div className="mt-20 grid grid-cols-1 gap-x-16 gap-y-8 lg:grid-cols-12">
         <div className="lg:col-span-4">
-          <h3 className="text-[1.375rem] leading-tight font-[560] tracking-[-0.02em]">What crosses the wire</h3>
+          <h3 className="text-[1.375rem] leading-tight font-[560] tracking-[-0.02em]">Filling one form</h3>
           <p className="mt-3 text-[15px] leading-[1.65] text-muted">
-            Per observation, measured on Wikipedia&rsquo;s main page; the form-page row is the
-            booking form above. Bars are to scale, which is why Deputy&rsquo;s are hard to see.
+            Ref-based tools send the least per page, about 158 tokens. They just send it seven more
+            times, and a turn re-reads everything before it.
           </p>
-          <p className="mt-4"><Source href={MEASUREMENTS}>measurements.md §2</Source></p>
+          <p className="mt-4"><Source href={MEASUREMENTS}>measurements.md</Source></p>
         </div>
         <div className="overflow-x-auto lg:col-span-8">
-          <table className="w-full border-collapse text-[14px] tnum">
+          <table className="w-full border-collapse text-[14.5px] tnum">
+            <thead>
+              <tr className="border-b border-line">
+                <th className="py-2 pr-4 text-left text-[12px] font-normal text-dim">What the agent works from</th>
+                <th className="py-2 pr-4 text-left text-[12px] font-normal text-dim">Agent turns</th>
+                <th className="py-2 pr-3 text-right text-[12px] font-normal text-dim">What each turn re-reads</th>
+              </tr>
+            </thead>
             <tbody>
-              {WIRE.map((w) => (
-                <tr key={w.what} className="border-b border-line-soft">
-                  <td className="py-3 pr-4">
-                    <div className={w.deputy ? 'text-ink' : 'text-muted'}>{w.what}</div>
-                    {w.note && <div className="text-[12.5px] text-dim">{w.note}</div>}
-                  </td>
-                  <td className={`py-3 pr-4 text-right font-mono whitespace-nowrap ${w.deputy ? 'text-accent' : 'text-ink'}`}>
-                    {w.approx ? '~' : ''}{fmt(w.tokens)}
-                  </td>
-                  <td className="w-[40%] py-3"><Bar value={w.tokens} max={WIRE[0]!.tokens} deputy={w.deputy} /></td>
+              {ONE_FORM.map((r) => (
+                <tr key={r.what} className={`border-b border-line-soft ${r.deputy ? 'bg-accent/[0.05]' : ''}`}>
+                  <td className={`py-3.5 pr-4 ${r.deputy ? 'pl-3 font-medium text-ink' : 'text-muted'}`}>{r.what}</td>
+                  <td className={`py-3.5 pr-4 font-mono text-[13.5px] ${r.deputy ? 'text-accent' : 'text-ink'}`}>{r.turns}</td>
+                  <td className={`py-3.5 pr-3 text-right font-mono text-[13.5px] whitespace-nowrap ${r.deputy ? 'text-accent' : 'text-ink'}`}>{r.rereads}</td>
                 </tr>
               ))}
             </tbody>
@@ -180,19 +181,19 @@ function Numbers() {
 const TIERS = [
   {
     id: 'declared',
-    file: 'tier-0 · declared.tsx',
+    file: 'examples/copilotkit.html',
     title: 'Tools the app already declared',
     body: 'Apps with an embedded copilot publish their frontend tools to the same registry. A CopilotKit app’s actions become callable by any agent, with no adapter.',
-    code: `// The app registers a frontend tool for its own copilot
-useFrontendTool({ name: "refundOrder", parameters, handler })
+    code: `// What the CopilotKit app registered for its own copilot
+{ name: "refundOrder", description: "Refund a customer order by its id",
+  parameters: [{ name: "orderId", type: "string", required: true }, …] }
 
-// CopilotKit v2 publishes it to document.modelContext.
-// Deputy lists it in browser_capabilities with its live handler,
-// so Claude Code or Cursor can call the real action.`,
+// v2 apps publish useFrontendTool(...) to document.modelContext.
+// Either way, Deputy lists refundOrder in browser_capabilities.`,
   },
   {
     id: 'forms',
-    file: 'tier-1 · form.html',
+    file: 'examples/booking.html',
     title: 'Real form elements',
     body: 'Four attributes, and the browser generates the JSON Schema and executes the submission natively.',
     code: `<form toolname="book_a_table" tooldescription="Book a table on …">
@@ -204,7 +205,7 @@ useFrontendTool({ name: "refundOrder", parameters, handler })
   },
   {
     id: 'synth',
-    file: 'tier-2 · synthesized.html',
+    file: 'examples/aria-form.html',
     title: 'Everything else',
     body: 'No form element? Deputy synthesizes the tool from the page’s controls, including ARIA widgets. Measured on a Google-Forms-shaped page: 1 field captured before, 5 of 5 after.',
     code: `<div role="radiogroup">      →  "enum"
@@ -242,7 +243,7 @@ function Tiers() {
 
       <Pane className="mt-12" tabs={<><ActiveTab>Sources</ActiveTab></>} aside="document.modelContext">
         <div className="grid grid-cols-1 md:grid-cols-[260px_1fr]">
-          <div role="tablist" aria-label="Tiers" aria-orientation="vertical" className="flex gap-1 overflow-x-auto border-b border-line p-2 md:flex-col md:border-r md:border-b-0">
+          <div role="tablist" aria-label="Tiers" aria-orientation="vertical" className="flex flex-col gap-1 border-b border-line p-2 md:border-r md:border-b-0">
             {TIERS.map((t, i) => (
               <button
                 key={t.id}
@@ -256,7 +257,7 @@ function Tiers() {
                   if (['ArrowUp', 'ArrowLeft'].includes(e.key)) { e.preventDefault(); setActive((active + TIERS.length - 1) % TIERS.length); }
                 }}
                 tabIndex={i === active ? 0 : -1}
-                className={`shrink-0 rounded-md px-3 py-2 text-left transition-colors md:w-full ${
+                className={`w-full rounded-md px-3 py-2 text-left transition-colors ${
                   i === active ? 'bg-raised text-ink' : 'text-muted hover:bg-raised/60 hover:text-ink'
                 }`}
               >
@@ -359,23 +360,23 @@ export default function App() {
         Skip to content
       </a>
 
-      <header className={`${wrap} flex h-16 items-center gap-6`}>
+      <header className={`${wrap} flex h-14 items-center gap-6`}>
         <a href="#" className="flex items-center gap-2.5 text-[17px] font-[600] tracking-[-0.01em]">
-          <InspectIcon width={20} height={20} className="text-accent" />
+          <BadgeMark width={22} height={22} />
           Deputy
         </a>
         <nav aria-label="Primary" className="ml-auto flex items-center gap-5 text-[14px] text-muted sm:gap-7">
-          <a href="#how" className="hidden hover:text-ink sm:inline">How it works</a>
           <a href="#numbers" className="hidden hover:text-ink sm:inline">Numbers</a>
+          <a href="#how" className="hidden hover:text-ink sm:inline">How it works</a>
           <a href="#install" className="hover:text-ink">Install</a>
           <a href={GH} className="flex items-center gap-2 hover:text-ink"><GitHubIcon />GitHub</a>
         </nav>
       </header>
 
       <main id="main">
-        <div className={`${wrap} pt-10 pb-20 sm:pt-16 sm:pb-28`}>
+        <div className={`${wrap} pt-8 pb-20 sm:pt-8 sm:pb-28`}>
           <div className="grid grid-cols-1 gap-x-16 gap-y-7 lg:grid-cols-12 lg:items-end">
-            <h1 className="max-w-[14ch] text-[2.75rem] leading-[0.98] font-[580] tracking-[-0.038em] sm:text-[4rem] lg:col-span-7 lg:text-[4.75rem]">
+            <h1 className="max-w-[14ch] text-[2.75rem] leading-[0.98] font-[580] tracking-[-0.038em] sm:text-[3.75rem] lg:col-span-7 lg:text-[3.6rem]">
               Agents shouldn&rsquo;t have to look at websites.
             </h1>
             <div className="lg:col-span-5 lg:pb-2">
@@ -395,7 +396,7 @@ export default function App() {
             </div>
           </div>
 
-          <div className="mt-12 sm:mt-16">
+          <div className="mt-7 sm:mt-8">
             <Inspector />
           </div>
         </div>
@@ -405,8 +406,8 @@ export default function App() {
             <div className="lg:col-span-5"><H2>See it work</H2></div>
             <p className="max-w-[62ch] text-[17px] leading-[1.65] text-muted lg:col-span-7 lg:mt-2">
               The recorded run. An ordinary product form with no <C>&lt;form&gt;</C> element, its
-              controls built from divs with ARIA roles. Deputy synthesizes a ten-field typed tool from it
-              and fills it from a single call.
+              controls built from divs with ARIA roles. Deputy synthesizes a ten-field typed tool from it,
+              sends the agent 758 tokens of schema, and fills the form from a single call.
             </p>
           </div>
           <Pane className="mt-12" tabs={<ActiveTab>Recorder</ActiveTab>} aside="deputy-demo.mp4 · 1:00">
