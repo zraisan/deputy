@@ -3,14 +3,33 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#111214" />
     <title>Deputy — an agent that lives in your browser</title>
-    <meta name="description" content="Deputy retrofits the W3C WebMCP standard onto sites that never implemented it, so the browser generates a typed API and executes the call. Agents stop looking at web pages." />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <meta name="description" content="Deputy retrofits the W3C WebMCP standard onto sites that never adopted it, so Chromium generates a typed tool from the page and performs the call. Agents stop looking at web pages." />
     <meta property="og:title" content="Deputy — an agent that lives in your browser" />
-    <meta property="og:description" content="Agents shouldn't have to look at websites. 14,170 tokens to describe a page, down to 611." />
-    <meta property="og:image" content="youtube-thumbnail.png" />
+    <meta property="og:description" content="Agents shouldn't have to look at websites. Deputy turns the page you are on into one typed tool call — 1.47× cheaper than Playwright MCP on the same task." />
+    <meta property="og:image" content="https://zraisan.github.io/deputy/youtube-thumbnail.png" />
+    <meta property="og:url" content="https://zraisan.github.io/deputy/" />
     <meta name="twitter:card" content="summary_large_image" />
   </head>
   <body>
+    <!--
+      THESIS: The page opens already inspected: Deputy's four attributes land in a live DevTools
+      Elements tree while Chromium's schema fills beside it. Refuses the centered dev-tool launch
+      page with glow, aurora and feature cards.
+      OWN-WORLD: Chromium DevTools dark theme. Graphite panels, hairline dividers, tab strips,
+      DOM syntax color (blue tags, orange values); Deputy's writes green, waiting-on-human amber.
+      Google Sans Flex and Google Sans Code.
+      STORY: A judge watches a real form become one typed call, sees the recorded run, reads
+      measured cost in a Network-panel table, learns the three tiers, trusts consent, installs.
+      FIRST VIEWPORT: Left headline, sub and two actions across the top; below, a wide browser
+      window: booking form over a docked DevTools panel, Elements tree left, tool schema right,
+      replaying the graft, with a step bar at its foot.
+      FORM: DevTools Inspector, first on the ordered list; seed d7dcfd99.
+      FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
+    -->
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
