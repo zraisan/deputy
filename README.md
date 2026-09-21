@@ -13,7 +13,7 @@ Reproduce it with `bun run demo` and `bun run dev`. Watch it:
 
 
 
-Deputy is an agent that lives in your browser. Any MCP client — Claude Code, Cursor, your own agent —
+Deputy is an agent that lives in your browser. Any MCP client — Claude Code, Codex, Cursor, your own agent —
 stops driving the browser itself and asks Deputy instead. It hands back a **typed API** for
 whatever page you are on, then performs the call in your real, logged-in session.
 
@@ -45,6 +45,10 @@ then **Chromium itself** generates the JSON Schema and executes the submission:
 ```
 
 We wrote no schema generator and no form-filler. The browser already had both.
+
+It also never submits for you. On any form that changes something, Deputy withholds WebMCP's
+auto-submit attribute, so Chromium fills the fields, focuses the submit button and waits for a
+person to press it. That is consent enforced by the browser, not by a check we could forget.
 
 ## CopilotKit: we meet on the same standard
 
@@ -132,7 +136,7 @@ Six, and they never change as you browse, so the caller's context stays flat.
 | tool | |
 |---|---|
 | `browser_capabilities` | the page's contract — typed schemas, current values, clickable actions |
-| `browser_invoke` | run a tool; fills and submits the real form |
+| `browser_invoke` | run a tool; fills the real form, and leaves a state-changing submit to you |
 | `browser_ask` | ask a question about a page; Deputy reads it and answers (~40 tokens) |
 | `browser_read` | the page as text, when you need the content to reason over |
 | `browser_navigate` | open a URL and report what appeared |
@@ -164,6 +168,12 @@ only, no auth. Deputy is not Claude-specific; it is the same six tools whatever 
 
 ```bash
 claude mcp add --transport http deputy http://127.0.0.1:7331/mcp
+```
+
+**Codex**
+
+```bash
+codex mcp add deputy --url http://127.0.0.1:7331/mcp
 ```
 
 **Cursor** — `~/.cursor/mcp.json`, or `.cursor/mcp.json` for one project

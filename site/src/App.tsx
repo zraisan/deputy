@@ -311,7 +311,7 @@ function Install() {
         <>
           <Prompt lines={['bun run dev', 'claude mcp add --transport http deputy http://127.0.0.1:7331/mcp']} />
           <p className="mt-3">
-            Any MCP client works: Cursor, VS Code and the rest take the same URL (
+            Any MCP client works: Codex (<C>codex mcp add deputy --url …/mcp</C>), Cursor, VS Code and the rest take the same URL (
             <a className="text-ink underline decoration-line hover:decoration-accent" href={`${GH}#run-it`}>config for each</a>
             ). Deputy&rsquo;s own reasoning is optional: set <C>OPENROUTER_API_KEY</C> in <C>.env</C>, or leave it
             unset and it falls back to a keyword planner.
@@ -381,7 +381,7 @@ export default function App() {
             </h1>
             <div className="lg:col-span-5 lg:pb-2">
               <p className="max-w-[46ch] text-[17px] leading-[1.6] text-muted sm:text-[18px]">
-                Deputy lives in your browser and hands other agents a typed API for whatever page you
+                Deputy lives in your browser and hands any agent a typed API for whatever page you
                 are on. No screenshots, no DOM dumps, no accessibility trees. The page never enters the
                 calling agent&rsquo;s context.
               </p>
@@ -431,8 +431,10 @@ export default function App() {
               <Lede>
                 Deputy withholds WebMCP&rsquo;s auto-submit attribute from any state-changing form, so the
                 browser focuses the submit button and waits for a human. That is consent enforced by the
-                platform, not by a check we could forget to write. Execution happens in the page&rsquo;s own
-                security context: no cookies are copied, no session state leaves your machine.
+                platform, not by a check we could forget to write. It runs in the browser you are already
+                logged into, inside the page&rsquo;s own security context: no cookies are copied, no session
+                state leaves your machine, and no &ldquo;debugging this browser&rdquo; banner, because Deputy never
+                attaches a debugger.
               </Lede>
             </div>
             <div className="lg:col-span-5">
