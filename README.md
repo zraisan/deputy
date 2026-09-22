@@ -271,4 +271,7 @@ a JSON *string*; passing an object stringifies to `[object Object]` and fails. T
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+[PolyForm Shield 1.0.0](LICENSE). Use it, change it and share it for anything, including at work,
+except to provide a product that competes with Deputy. Re-publishing it counts as competing, even for free.
+
+Versions up to and including commit `5d38eee` were released under the MIT License.

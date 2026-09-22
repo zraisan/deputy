@@ -459,7 +459,7 @@ export default function App() {
 
       <footer className="border-t border-line bg-panel">
         <div className={`${wrap} flex flex-col gap-2 py-5 font-mono text-[12.5px] text-dim sm:flex-row sm:items-center sm:gap-6`}>
-          <span>MIT licensed · <a className="text-muted hover:text-accent" href={GH}>Source on GitHub</a></span>
+          <span>PolyForm Shield licensed · <a className="text-muted hover:text-accent" href={GH}>Source on GitHub</a></span>
           <span className="sm:ml-auto">
             Demo music: &ldquo;Deep Haze&rdquo; by Kevin MacLeod (incompetech.com),{' '}
             <a className="text-muted hover:text-accent" href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>
