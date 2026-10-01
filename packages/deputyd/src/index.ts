@@ -503,6 +503,12 @@ const server = Bun.serve({
     const url = new URL(req.url);
 
     if (url.pathname === '/ext') {
+      // Only the extension may speak for the browser. Web pages can reach 127.0.0.1 too, and
+      // they always send an Origin; the extension's is chrome-extension://, local tools send none.
+      const origin = req.headers.get('origin');
+      if (origin && !origin.startsWith('chrome-extension://')) {
+        return new Response('forbidden', { status: 403 });
+      }
       if (srv.upgrade(req)) return undefined as unknown as Response;
       return new Response('expected a websocket upgrade', { status: 426 });
     }
