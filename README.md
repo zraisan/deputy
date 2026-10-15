@@ -4,7 +4,12 @@
 
 **[Add to Chrome](https://chromewebstore.google.com/detail/deputy/ofcadhlipiciahelmcjofblnjhmjoepm)** · [Deputy Pro](https://razin.ai/deputy) · [launch film](https://www.youtube.com/watch?v=NTdMDONeU1c) · [measurements](docs/measurements.md) · [architecture](ARCHITECTURE.md)
 
-<!-- The launch film goes here: drag store/assets/deputy-launch.mp4 onto this line in GitHub's editor. -->
+
+
+https://github.com/user-attachments/assets/ffd3eeb2-2ed4-4bb8-83d7-c809d50e8fff
+
+
+
 
 This repository is the free, open-source version of Deputy: you build it from source, and forms
 as tools need Chromium's WebMCP flag. The full Deputy is on the
