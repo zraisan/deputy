@@ -2,16 +2,26 @@
 
 **We taught a website to describe itself to an agent — without its cooperation.**
 
-**[zraisan.github.io/deputy](https://zraisan.github.io/deputy/)** · [demo video](docs/deputy-demo.mp4) · [measurements](docs/measurements.md) · [architecture](ARCHITECTURE.md)
+**[Add to Chrome](https://chromewebstore.google.com/detail/deputy/ofcadhlipiciahelmcjofblnjhmjoepm)** · [Deputy Pro](https://razin.ai/deputy) · [launch film](https://www.youtube.com/watch?v=NTdMDONeU1c) · [measurements](docs/measurements.md) · [architecture](ARCHITECTURE.md)
 
-![Deputy synthesizing a typed tool from a page with no form element, then filling it](docs/deputy-still.png)
+<!-- The launch film goes here: drag store/assets/deputy-launch.mp4 onto this line in GitHub's editor. -->
 
-*An ordinary product form with no `<form>` element: its controls are divs with ARIA roles. Deputy
-synthesizes a 10-field typed tool from it, hands the schema to an agent, and fills it from one call.
-Reproduce it with `bun run demo` and `bun run dev`. Watch it:
-**[docs/deputy-demo.mp4](docs/deputy-demo.mp4)**.*
+This repository is the free, open-source version of Deputy: you build it from source, and forms
+as tools need Chromium's WebMCP flag. The full Deputy is on the
+[Chrome Web Store](https://chromewebstore.google.com/detail/deputy/ofcadhlipiciahelmcjofblnjhmjoepm).
+**Deputy Pro** (hosted models, `browser_look`): **[razin.ai/deputy](https://razin.ai/deputy)**.
 
+**Measured on a busy page.** An admin page with 400 orders: filter them and count the matches.
+Claude Sonnet in Claude Code, the same prompt, median of three runs, every run passed. Measured
+with the full Deputy, not this open-source build.
 
+| | Claude + Playwright MCP | Claude + Deputy | |
+|---|---|---|---|
+| turns | 10 | **3** | |
+| Claude tokens | 245,250 | **72,632** | **3.4× fewer** |
+| **total cost** | **$0.189** | **$0.072** | **2.6× cheaper** |
+
+Method: [`docs/measurements.md` §0](docs/measurements.md#0-a-busy-page-2026-10-14).
 
 Deputy is an agent that lives in your browser. Any MCP client — Claude Code, Codex, Cursor, your own agent —
 stops driving the browser itself and asks Deputy instead. It hands back a **typed API** for

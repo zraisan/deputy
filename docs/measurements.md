@@ -1,11 +1,40 @@
 # Measurements
 
-Every number in the README comes from here. All of it was measured on one machine
-(Chromium 152, Linux) and is reproducible with the commands shown.
+Every number in the README comes from here, all measured on one Linux machine with Chromium.
 
+Section 0 (2026-10-14) was measured with the full Deputy. Sections 1 onward were taken on
+2026-09-12 with Chromium 152 and this repository's code, and are reproducible with the commands
+shown. Reproducible, not cited.
 
+## 0. A busy page (2026-10-14)
 
-All numbers taken on this machine, 2026-09-12, Chromium 152. Reproducible, not cited.
+Measured with the full Deputy (the version on the Chrome Web Store), not this open-source build;
+the benchmark harness lives with the full version. These are the figures in the launch film
+([on YouTube](https://www.youtube.com/watch?v=NTdMDONeU1c)). Claude Sonnet in Claude Code (`claude -p`), the same prompt for both,
+one Linux machine with Chromium. Playwright MCP 0.0.82, on accessibility snapshots, not
+screenshots. Medians of 3; every counted run passed.
+
+Task: an admin page with 400 orders and 100 links. Filter the orders to status Refunded, placed
+on or after 2026-08-01, and count the matches.
+
+| dashboard-filter (400 orders) | Playwright MCP | Deputy | |
+|---|---|---|---|
+| agent turns | 10 | **3** | |
+| Claude tokens | 245,250 | **72,632** | **3.4× fewer** |
+| page data to the agent (chars) | 46,640 | **7,269** | **6.4× less** |
+| total cost | $0.189 | **$0.072** | **2.6× cheaper** |
+
+Why the gap grows: every call to Claude re-reads the whole conversation. Context per call in the
+median runs (thousands of tokens): Playwright 19.2, 21.1, 22.1, **44.6**, 45.3, 45.5, 46.3;
+Deputy 21.9, 24.8, 25.7. The jump is one snapshot of the dashboard (22,556 tokens) that every
+later call reads again.
+
+A seven-field booking form, same setup: Playwright MCP 107,392 tokens, $0.080; Deputy 68,551
+tokens, $0.064. The page is small, so the gap is smaller.
+
+Wall clock is not reported: the machine was under heavy unrelated load during part of these runs.
+Two of the first three Deputy booking-form runs failed because the extension lost its connection to
+the hub; three later runs passed and are the ones counted.
 
 ## 1. The headline: filling a real form, both sides accounted
 
