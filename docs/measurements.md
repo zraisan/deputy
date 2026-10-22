@@ -2,7 +2,7 @@
 
 Every number in the README comes from here, all measured on one Linux machine with Chromium.
 
-Section 0 (2026-10-14) was measured with the full Deputy. Sections 1 onward were taken on
+Sections 0 to 0c (2026-10-14 to 2026-10-23) were measured with the full Deputy. Sections 1 onward were taken on
 2026-09-12 with Chromium 152 and this repository's code, and are reproducible with the commands
 shown. Reproducible, not cited.
 
@@ -35,6 +35,60 @@ tokens, $0.064. The page is small, so the gap is smaller.
 Wall clock is not reported: the machine was under heavy unrelated load during part of these runs.
 Two of the first three Deputy booking-form runs failed because the extension lost its connection to
 the hub; three later runs passed and are the ones counted.
+
+## 0b. Against Vercel's agent-browser (2026-10-22)
+
+Measured with the full Deputy (the version on the Chrome Web Store), not this open-source build;
+the benchmark harness and its results live with the full version.
+Claude Sonnet in Claude Code, Chromium 154, the same two tasks as section 0. agent-browser 0.39.1
+ships as a command-line tool and a skill, not an MCP server, so its runs could use Bash limited to
+`agent-browser` commands, were attached over CDP to their own warm Chromium, and were told to start
+the way its docs say (`agent-browser skills get core`). Deputy's approval card waited 0 s instead
+of 45 s, because nobody was at the page to answer it; the agent then pressed submit, as the task
+asks. Medians of 3; all 12 runs passed.
+
+| | agent-browser | Deputy | |
+|---|---|---|---|
+| dashboard-filter: turns | 11 | **3** | |
+| dashboard-filter: Claude tokens | 271,172 | **72,756** | **3.7× fewer** |
+| dashboard-filter: cost | $0.115 | **$0.072** | **1.6× cheaper** |
+| booking-form: turns | 7 | **3** | |
+| booking-form: Claude tokens | 155,200 | **68,683** | **2.3× fewer** |
+| booking-form: cost | $0.084 | **$0.065** | **1.3× cheaper** |
+| total cost, all 12 runs | $0.611 | **$0.448** | |
+
+Part of agent-browser's tokens is its usage guide, which the agent loads first as the docs advise;
+a run that skipped it would be cheaper and less reliable. Wall clock is not compared: agent-browser's
+times varied from 30 s to 224 s on the same task, which says more about the machine than the tool.
+Playwright CLI was not measured.
+
+## 0c. Eight real sites (2026-10-23)
+
+`bun scripts/sweep.ts` against the full Deputy's dev build (Chromium 154, WebMCP flag on). What
+Deputy offers the agent on each page's first load:
+
+| site | typed tools | clickable actions | ~tokens for the agent |
+|---|---|---|---|
+| DuckDuckGo | search, and a "switch to DuckDuckGo" sign-up | 124 | 597 |
+| Wikipedia | search, plus four appearance settings with poor names (`skin_client_pref_…`) | 268 | 1,487 |
+| GitHub search | search | 13 | 329 |
+| Hacker News login | log in, create account | 1 | 368 |
+| npm | search packages | 28 | 325 |
+| MDN | none: its search lives in a dialog that opens on click | 79 | 210 |
+| W3C form demo | the demo's forms, in the page and in its two example frames | 250 | 2,286 |
+| Stack Overflow | search, question filters, sign up, each listed three times | 197 | 3,912 |
+
+Two faults this shows, not yet fixed: Stack Overflow loads two copies of itself in frames, and
+Deputy lists their forms again under `_frame56` and `_frame64` names; and Wikipedia's appearance
+settings get names from their field ids, not from the label shown on the page.
+
+## 0d. A fresh clone of the open-source version (2026-10-23)
+
+`git clone https://github.com/zraisan/deputy`, then the README's own steps and nothing else:
+`bun install` (82 packages, under a second), `cp .env.example .env`, `bun run dev` with a new
+browser profile. The extension connected to the daemon by itself; an MCP client listed the tools and
+opened a real form page (httpbin's order form) without errors. One thing to fix: the README says the
+agent gets "the same six tools", and the open-source version now offers 10.
 
 ## 1. The headline: filling a real form, both sides accounted
 
