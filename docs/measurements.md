@@ -87,8 +87,7 @@ settings get names from their field ids, not from the label shown on the page.
 `git clone https://github.com/zraisan/deputy`, then the README's own steps and nothing else:
 `bun install` (82 packages, under a second), `cp .env.example .env`, `bun run dev` with a new
 browser profile. The extension connected to the daemon by itself; an MCP client listed the tools and
-opened a real form page (httpbin's order form) without errors. One thing to fix: the README says the
-agent gets "the same six tools", and the open-source version now offers 10.
+opened a real form page (httpbin's order form) without errors. The README said the agent gets "the same six tools"; the open-source version offers 10, and the README now says so (2026-10-24).
 
 ## 1. The headline: filling a real form, both sides accounted
 

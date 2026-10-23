@@ -146,16 +146,20 @@ the context that would have prevented it.
 
 ## Tools the agent sees
 
-Six, and they never change as you browse, so the caller's context stays flat.
+Ten, and they never change as you browse, so the caller's context stays flat.
 
 | tool | |
 |---|---|
-| `browser_capabilities` | the page's contract — typed schemas, current values, clickable actions |
+| `browser_capabilities` | the page's contract: typed schemas, current values, clickable actions |
 | `browser_invoke` | run a tool; fills the real form, and leaves a state-changing submit to you |
+| `browser_click` | click an action from `browser_capabilities`, by its ref |
+| `browser_fill` | set one field by ref, on pages whose form could not become a typed tool |
 | `browser_ask` | ask a question about a page; Deputy reads it and answers (~40 tokens) |
 | `browser_read` | the page as text, when you need the content to reason over |
 | `browser_navigate` | open a URL and report what appeared |
 | `delegate_goal` | hand over a goal and let Deputy choose |
+| `task_status` | check a delegated goal that is still running or was interrupted |
+| `answer_task` | resume a delegated goal that stopped for a person: a confirmation, or a sign-in |
 
 Long pages are **windowed, never silently truncated**: Wikipedia's 263 links come back as
 `"Showing 1-25 of 263"` with `actionQuery` to filter and `actionOffset` to page.
@@ -177,7 +181,7 @@ bun run dev                # daemon + a Chromium carrying the extension
 ```
 
 Then point any MCP client at `http://127.0.0.1:7331/mcp` — one streamable-HTTP endpoint, loopback
-only, no auth. Deputy is not Claude-specific; it is the same six tools whatever is calling.
+only, no auth. Deputy is not Claude-specific; it is the same ten tools whatever is calling.
 
 **Claude Code**
 
