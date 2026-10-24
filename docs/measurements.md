@@ -78,9 +78,13 @@ Deputy offers the agent on each page's first load:
 | W3C form demo | the demo's forms, in the page and in its two example frames | 250 | 2,286 |
 | Stack Overflow | search, question filters, sign up, each listed three times | 197 | 3,912 |
 
-Two faults this shows, not yet fixed: Stack Overflow loads two copies of itself in frames, and
-Deputy lists their forms again under `_frame56` and `_frame64` names; and Wikipedia's appearance
-settings get names from their field ids, not from the label shown on the page.
+Faults this showed. Fixed on 2026-10-24: Stack Overflow loads two copies of itself in frames, and
+Deputy listed their forms again under `_frame56` and `_frame64` names; it now offers each form once
+(search, filters, sign-up). MDN: clicking Search opens a dialog, and Deputy now offers its box as
+`search_mozilla` by the agent's next call (it was named after the page heading, and only appeared
+one action later). Still open: Wikipedia's appearance settings get names from their field ids, not
+from the label shown on the page; and on Stack Overflow `browser_navigate` can give up after 30 s
+while ads keep loading, though the page is usable.
 
 ## 0d. A fresh clone of the open-source version (2026-10-23)
 
