@@ -83,8 +83,11 @@ Deputy listed their forms again under `_frame56` and `_frame64` names; it now of
 (search, filters, sign-up). MDN: clicking Search opens a dialog, and Deputy now offers its box as
 `search_mozilla` by the agent's next call (it was named after the page heading, and only appeared
 one action later). Still open: Wikipedia's appearance settings get names from their field ids, not
-from the label shown on the page; and on Stack Overflow `browser_navigate` can give up after 30 s
-while ads keep loading, though the page is usable.
+from the label shown on the page. Also fixed on 2026-10-24: `browser_navigate` gave up on Stack
+Overflow after 30 s while its ads kept loading, and on a first visit reported Cloudflare's "Just a
+moment..." check as the page. It now answers once the real page is usable, in 3.6 to 3.9 s
+(Deputy's page script runs when the document is parsed, frames are read in parallel, and a bot
+check is waited out), with every wait capped at 18 s.
 
 ## 0d. A fresh clone of the open-source version (2026-10-23)
 
